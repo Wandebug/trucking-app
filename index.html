@@ -126,8 +126,6 @@
   .tabs{display:flex;background:var(--field);border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:4px;margin-bottom:18px;}
   .tab{flex:1;text-align:center;padding:11px;border-radius:9px;font-weight:700;font-family:var(--disp);font-size:14px;color:var(--muted);cursor:pointer;transition:.18s;}
   .tab.active{background:#fff;color:var(--ink);box-shadow:var(--sh-sm);}
-  .demo-note{background:linear-gradient(160deg,#fff8ea,#fdf1d8);border:1px solid #f0d79a;border-radius:var(--radius-xs);padding:11px 13px;font-size:13px;color:#8a6308;margin-bottom:16px;}
-  .demo-note b{font-family:var(--mono);font-weight:700;}
 
   .stats{display:flex;gap:10px;margin-bottom:18px;}
   .stat{flex:1;background:var(--field);border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:14px 10px;text-align:center;}
@@ -158,6 +156,41 @@
   .lang-opt.sel .check{opacity:1;}
 
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+  .picker{border:1px solid var(--line-2);border-radius:var(--radius-xs);background:var(--field);padding:10px;}
+  .field.bad .picker{border-color:var(--pdf);box-shadow:0 0 0 3px rgba(207,69,48,.14);}
+  .sel-bar{display:flex;flex-wrap:wrap;gap:7px;align-items:center;min-height:30px;margin-bottom:10px;}
+  .sel-none{color:var(--muted);font-size:13px;}
+  .picker-search{width:100%;margin-bottom:8px;background:#fff;font-size:14px;padding:9px 11px;}
+  .checklist{max-height:188px;overflow-y:auto;background:#fff;border:1px solid var(--line);border-radius:9px;}
+  .checklist::-webkit-scrollbar{width:8px;}.checklist::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:8px;}
+  .check-row{display:flex;align-items:center;gap:11px;padding:11px 13px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .12s;}
+  .check-row:last-child{border-bottom:0;}
+  .check-row:hover{background:var(--field);}
+  .check-row input{width:18px;height:18px;flex:none;margin:0;accent-color:var(--amber-deep);cursor:pointer;}
+  .check-row .pl{font-family:var(--mono);font-weight:700;font-size:14px;letter-spacing:.4px;color:var(--ink);}
+  .check-row .pl.other{font-family:var(--body);font-weight:600;letter-spacing:0;color:var(--ink-soft);}
+  .check-row:has(input:checked){background:#fff7e8;}
+  .check-row:has(input:checked) .pl{color:var(--amber-deep);}
+  .other-row{background:#faf8f4;}
+  .dropdown{position:relative;}
+  .dd-trigger{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--field);border:1px solid var(--line-2);border-radius:var(--radius-xs);padding:13px 14px;font-family:var(--body);font-size:15px;color:var(--ink);cursor:pointer;transition:border-color .15s,box-shadow .15s;}
+  .dd-trigger:hover{border-color:var(--amber);}
+  .dd-label{color:var(--muted);}
+  .dropdown.has-sel .dd-label{color:var(--ink);font-weight:600;}
+  .dd-chev{color:var(--muted);font-size:12px;transition:transform .25s;}
+  .dropdown.open .dd-chev{transform:rotate(180deg);}
+  .dropdown.open .dd-trigger{border-color:var(--amber);box-shadow:0 0 0 3px rgba(245,165,36,.18);}
+  .dd-panel{max-height:0;overflow:hidden;transition:max-height .3s ease;}
+  .dropdown.open .dd-panel{max-height:560px;padding-top:8px;}
+  .field.bad .dd-trigger{border-color:var(--pdf);box-shadow:0 0 0 3px rgba(207,69,48,.14);}
+  .dropdown .sel-bar{margin:10px 0 0;}
+  .confirm-name{font-family:var(--disp);font-weight:800;font-size:24px;text-align:center;color:var(--ink);background:var(--field);border:1px solid var(--line-2);border-radius:14px;padding:18px 12px;margin:6px 0 16px;letter-spacing:.3px;}
+  .confirm-btns{display:flex;gap:10px;}
+  .confirm-btns button{flex:1;padding:14px;border-radius:12px;font-family:var(--body);font-weight:700;font-size:15px;cursor:pointer;border:1px solid transparent;transition:filter .15s,border-color .15s;}
+  .btn-no{background:#fff;border-color:var(--line-2);color:var(--ink-soft);}
+  .btn-no:hover{border-color:var(--ink-soft);}
+  .btn-yes{background:linear-gradient(180deg,var(--amber),var(--amber-deep));color:#1a1205;box-shadow:0 6px 18px -6px rgba(245,165,36,.6);}
+  .btn-yes:hover{filter:brightness(1.03);}
 </style>
 </head>
 <body>
@@ -189,48 +222,75 @@
       <div class="errbar" id="errbar" data-i18n="errFill">Please fill in all required fields.</div>
 
       <div class="section-title" data-i18n="secInfo">Driver &amp; Client</div>
-      <div class="field" id="f-driver"><label class="req" data-i18n="driver">Driver</label>
-        <div class="help" data-i18n="hDriver">Your full name.</div>
-        <input id="driver" data-i18n-ph="driverPh" placeholder="Enter driver name"></div>
+      <div class="field" id="f-driver"><label class="req" data-i18n="driverCode">Driver code</label>
+        <div class="help" data-i18n="hDriverCode">Enter your personal code — your name appears to confirm.</div>
+        <input id="driver" data-i18n-ph="driverCodePh" placeholder="e.g. 4821" autocomplete="off"></div>
       <div class="field" id="f-client"><label class="req" data-i18n="client">Client</label>
-        <div class="help" data-i18n="hClient">Who you drove for, e.g. Maersk.</div>
-        <input id="client" data-i18n-ph="clientPh" placeholder="Enter client name"></div>
-
-      <div class="section-title" data-i18n="secVehicle">Vehicles</div>
-
-      <div class="field" id="f-truck"><label class="req" data-i18n="truck">Trucks</label>
-        <div class="help" data-i18n="hTrucks">Choose "Other", then type the truck's license plate. Add more if you used several.</div>
-        <div class="chips" id="truckChips"></div>
-        <select id="truckSelect" onchange="onVehSelect('truck')">
-          <option value="" data-i18n="optAdd">Select to add…</option>
-          <option value="other" data-i18n="optOther">Other — enter license plate</option>
-        </select>
-        <div class="otherbox" id="truckOther" style="display:none">
-          <span class="ol" data-i18n="plateInstr">Enter the license plate used:</span>
-          <div class="plate-row">
-            <input id="truckPlate" data-i18n-ph="platePh" placeholder="e.g. ABC-1234" onkeydown="if(event.key==='Enter'){event.preventDefault();addVeh('truck');}">
-            <button type="button" class="addbtn" onclick="addVeh('truck')" data-i18n="addBtn">Add</button>
+        <div class="help" data-i18n="hClient">Choose the client you drove for.</div>
+        <div class="dropdown" id="clientDD">
+          <button type="button" class="dd-trigger" onclick="toggleDD('client')">
+            <span class="dd-label" id="clientDDlabel" data-i18n="ddClient">Select client…</span>
+            <span class="dd-chev" aria-hidden="true">▾</span>
+          </button>
+          <div class="dd-panel">
+            <input class="picker-search" id="clientSearch" data-i18n-ph="searchClient" placeholder="Search client…" oninput="filterList('client')">
+            <div class="checklist" id="clientChecklist"></div>
+            <div class="otherbox" id="clientOther" style="display:none">
+              <span class="ol" data-i18n="instrClient">Type the client name:</span>
+              <input id="clientOtherInput" data-i18n-ph="phClient" placeholder="e.g. ACME Logistics" oninput="onOther('client')">
+            </div>
           </div>
+          <div class="sel-bar" id="clientSel"></div>
         </div>
       </div>
 
-      <div class="field" id="f-trailer"><label class="req" data-i18n="trailer">Trailers</label>
-        <div class="help" data-i18n="hTrailers">Choose "Other", then type the trailer's license plate. Add more if you used several.</div>
-        <div class="chips" id="trailerChips"></div>
-        <select id="trailerSelect" onchange="onVehSelect('trailer')">
-          <option value="" data-i18n="optAdd">Select to add…</option>
-          <option value="other" data-i18n="optOther">Other — enter license plate</option>
-        </select>
-        <div class="otherbox" id="trailerOther" style="display:none">
-          <span class="ol" data-i18n="plateInstr">Enter the license plate used:</span>
-          <div class="plate-row">
-            <input id="trailerPlate" data-i18n-ph="platePh" placeholder="e.g. ABC-1234" onkeydown="if(event.key==='Enter'){event.preventDefault();addVeh('trailer');}">
-            <button type="button" class="addbtn" onclick="addVeh('trailer')" data-i18n="addBtn">Add</button>
+      <div class="section-title" data-i18n="secVehicle">Vehicles</div>
+
+      <div class="field" id="f-truck"><label class="req" data-i18n="trucks">Trucks</label>
+        <div class="help" data-i18n="hTrucks">Tick every truck you drove.</div>
+        <div class="dropdown" id="truckDD">
+          <button type="button" class="dd-trigger" onclick="toggleDD('truck')">
+            <span class="dd-label" id="truckDDlabel" data-i18n="ddTruck">Select trucks…</span>
+            <span class="dd-chev" aria-hidden="true">▾</span>
+          </button>
+          <div class="dd-panel">
+            <input class="picker-search" id="truckSearch" data-i18n-ph="searchPh" placeholder="Search plate…" oninput="filterList('truck')">
+            <div class="checklist" id="truckChecklist"></div>
+            <div class="otherbox" id="truckOther" style="display:none">
+              <span class="ol" data-i18n="plateInstr">Type the plate:</span>
+              <input id="truckOtherInput" data-i18n-ph="platePh" placeholder="e.g. AB-123-C" oninput="onOther('truck')">
+            </div>
           </div>
+          <div class="sel-bar" id="truckSel"></div>
+        </div>
+      </div>
+
+      <div class="field" id="f-trailer"><label class="req" data-i18n="trailers">Trailers</label>
+        <div class="help" data-i18n="hTrailers">Tick every trailer you drove.</div>
+        <div class="dropdown" id="trailerDD">
+          <button type="button" class="dd-trigger" onclick="toggleDD('trailer')">
+            <span class="dd-label" id="trailerDDlabel" data-i18n="ddTrailer">Select trailers…</span>
+            <span class="dd-chev" aria-hidden="true">▾</span>
+          </button>
+          <div class="dd-panel">
+            <input class="picker-search" id="trailerSearch" data-i18n-ph="searchPh" placeholder="Search plate…" oninput="filterList('trailer')">
+            <div class="checklist" id="trailerChecklist"></div>
+            <div class="otherbox" id="trailerOther" style="display:none">
+              <span class="ol" data-i18n="plateInstr">Type the plate:</span>
+              <input id="trailerOtherInput" data-i18n-ph="platePh" placeholder="e.g. AB-123-C" oninput="onOther('trailer')">
+            </div>
+          </div>
+          <div class="sel-bar" id="trailerSel"></div>
         </div>
       </div>
 
       <div class="section-title" data-i18n="secTrip">Trip Details</div>
+      <div class="field" id="f-firstStop"><label class="req" data-i18n="firstStop">First stop address (loading/unloading)</label>
+        <div class="help" data-i18n="hFirstStop">Where the first pick-up or drop-off was.</div>
+        <input id="firstStop" data-i18n-ph="firstStopPh" placeholder="Street, city, country"></div>
+      <div class="field" id="f-lastStop"><label class="req" data-i18n="lastStop">Last stop address (loading/unloading)</label>
+        <div class="help" data-i18n="hLastStop">Where the last pick-up or drop-off was.</div>
+        <input id="lastStop" data-i18n-ph="lastStopPh" placeholder="Street, city, country"></div>
       <div class="field" id="f-startKm"><label class="req" data-i18n="startKm">Start KM</label>
         <div class="help" data-i18n="hStartKm">Odometer at the start, e.g. 12450.</div>
         <input id="startKm" type="number" inputmode="numeric" data-i18n-ph="startKmPh" placeholder="Enter start km" oninput="calc()"></div>
@@ -292,7 +352,6 @@
     <div class="card screen" id="screen-auth">
       <h2 class="screen-title" data-i18n="checkHours">Check My Hours</h2>
       <p class="screen-sub" data-i18n="loginPrompt">Sign in to see the hours you've submitted.</p>
-      <div class="demo-note" data-i18n="demoNote">Demo login — Driver: <b>Demo Driver</b>, Password: <b>demo</b></div>
       <div class="tabs">
         <div class="tab active" id="tab-login" onclick="setAuthMode('login')" data-i18n="loginBtn">Log In</div>
         <div class="tab" id="tab-register" onclick="setAuthMode('register')" data-i18n="registerBtn">Register</div>
@@ -337,6 +396,18 @@
       <div id="langList"></div></div>
   </div>
 
+  <div class="overlay" id="confirmOverlay">
+    <div class="sheet">
+      <h3 data-i18n="confirmTitle">Is this you?</h3>
+      <p class="note" data-i18n="confirmSub">Check your name below before we save the entry.</p>
+      <div class="confirm-name" id="confirmName">—</div>
+      <div class="confirm-btns">
+        <button type="button" class="btn-no" onclick="confirmNo()" data-i18n="no">No — check code</button>
+        <button type="button" class="btn-yes" onclick="finalizeEntry()" data-i18n="yes">Yes, that's me</button>
+      </div>
+    </div>
+  </div>
+
 <script>
 const T = {
  en:{title:'Driver Work Entry',sub:'Fill in your trip, then submit.',secInfo:'Driver & Client',secVehicle:'Vehicles',secTrip:'Trip Details',secTime:'Time',
@@ -350,11 +421,11 @@ const T = {
    hStartKm:'Odometer at the start, e.g. 12450.',hEndKm:'Odometer at the end, e.g. 12780.',hBreak:'Total break taken during the trip.',
    hStartT:'When you started driving.',hEndT:'When you finished.',hRemarks:'Anything to note (optional), e.g. delay at the border.',hCode:'Ask your manager for this code.',
    totalKm:'Total KM',totalTime:'Total Time',submit:'Submit',reqNote:'Fields marked * are required.',
-   errFill:'Please fill in all required fields.',errTruck:'Please add at least one truck.',errTrailer:'Please add at least one trailer.',errKm:'End KM must be higher than Start KM.',errTime:'End Time must be after Start Time.',
+   errFill:'Please fill in all the highlighted fields, then submit.',errTruck:'Please add at least one truck.',errTrailer:'Please add at least one trailer.',errKm:'End KM must be higher than Start KM. Check both numbers and fix the highlighted field.',errTime:'End Time must be after Start Time. Please correct the highlighted time.',
    thanks:'Thanks for submitting!',refLabel:'Reference',chooseShare:'Please choose one of these methods to share in your work group:',newEntry:'+ New Entry',
    whatsapp:'Send via WhatsApp',pdf:'Download PDF',excel:'Download Excel',report:'Driver Work Report',
    chooseLang:'Choose your language',langNote:"The app opens automatically in your phone's language.",accountBtn:'My Hours',checkHours:'Check My Hours',loginPrompt:"Sign in to see the hours you've submitted.",
-   demoNote:'Demo login — Driver: <b>Demo Driver</b>, Password: <b>demo</b>',name:'Driver Name',password:'Password',passwordPh:'Enter password',confirmPw:'Confirm Password',
+   name:'Driver Name',password:'Password',passwordPh:'Enter password',confirmPw:'Confirm Password',
    regCode:'Registration Code',regCodePh:'Code from your manager',loginBtn:'Log In',registerBtn:'Register',back:'Back to form',
    myHours:'My Hours',statEntries:'Entries',statHours:'Hours',statKm:'Total KM',signOut:'Sign Out',welcome:'Welcome',
    errLogin:'Wrong name or password.',errMismatch:'Passwords do not match.',errCode:'Wrong registration code.',errExists:'That driver is already registered.',errShort:'Password must be at least 4 characters.',noEntries:'No entries yet.'},
@@ -369,11 +440,11 @@ const T = {
    hStartKm:'Kilometerstand bij start, bijv. 12450.',hEndKm:'Kilometerstand bij einde, bijv. 12780.',hBreak:'Totale pauze tijdens de rit.',
    hStartT:'Wanneer je begon met rijden.',hEndT:'Wanneer je klaar was.',hRemarks:'Eventuele opmerkingen (optioneel), bijv. vertraging bij de grens.',hCode:'Vraag je manager om deze code.',
    totalKm:'Totaal KM',totalTime:'Totale Tijd',submit:'Verzenden',reqNote:'Velden met * zijn verplicht.',
-   errFill:'Vul alle verplichte velden in.',errTruck:'Voeg ten minste één vrachtwagen toe.',errTrailer:'Voeg ten minste één oplegger toe.',errKm:'Eind KM moet hoger zijn dan Begin KM.',errTime:'Eindtijd moet na Starttijd liggen.',
+   errFill:'Vul de gemarkeerde velden in en verzend daarna.',errTruck:'Voeg ten minste één vrachtwagen toe.',errTrailer:'Voeg ten minste één oplegger toe.',errKm:'Eind KM moet hoger zijn dan Begin KM. Controleer beide getallen en corrigeer het gemarkeerde veld.',errTime:'Eindtijd moet na Starttijd liggen. Corrigeer de gemarkeerde tijd.',
    thanks:'Bedankt voor het verzenden!',refLabel:'Referentie',chooseShare:'Kies een van deze methoden om in je werkgroep te delen:',newEntry:'+ Nieuwe registratie',
    whatsapp:'Verzenden via WhatsApp',pdf:'PDF downloaden',excel:'Excel downloaden',report:'Werkrapport Chauffeur',
    chooseLang:'Kies je taal',langNote:'De app opent automatisch in de taal van je telefoon.',accountBtn:'Mijn Uren',checkHours:'Mijn Uren',loginPrompt:'Log in om je verzonden uren te zien.',
-   demoNote:'Demo login — Chauffeur: <b>Demo Driver</b>, Wachtwoord: <b>demo</b>',name:'Chauffeursnaam',password:'Wachtwoord',passwordPh:'Voer wachtwoord in',confirmPw:'Bevestig wachtwoord',
+   name:'Chauffeursnaam',password:'Wachtwoord',passwordPh:'Voer wachtwoord in',confirmPw:'Bevestig wachtwoord',
    regCode:'Registratiecode',regCodePh:'Code van je manager',loginBtn:'Inloggen',registerBtn:'Registreren',back:'Terug naar formulier',
    myHours:'Mijn Uren',statEntries:'Ritten',statHours:'Uren',statKm:'Totaal KM',signOut:'Uitloggen',welcome:'Welkom',
    errLogin:'Verkeerde naam of wachtwoord.',errMismatch:'Wachtwoorden komen niet overeen.',errCode:'Verkeerde registratiecode.',errExists:'Die chauffeur is al geregistreerd.',errShort:'Wachtwoord moet minstens 4 tekens zijn.',noEntries:'Nog geen registraties.'},
@@ -388,11 +459,11 @@ const T = {
    hStartKm:'Licznik na starcie, np. 12450.',hEndKm:'Licznik na końcu, np. 12780.',hBreak:'Łączna przerwa podczas trasy.',
    hStartT:'Kiedy zacząłeś jazdę.',hEndT:'Kiedy skończyłeś.',hRemarks:'Dodatkowe uwagi (opcjonalnie), np. opóźnienie na granicy.',hCode:'Poproś menedżera o ten kod.',
    totalKm:'Suma KM',totalTime:'Łączny czas',submit:'Wyślij',reqNote:'Pola oznaczone * są wymagane.',
-   errFill:'Wypełnij wszystkie wymagane pola.',errTruck:'Dodaj co najmniej jeden pojazd.',errTrailer:'Dodaj co najmniej jedną naczepę.',errKm:'Końcowy KM musi być większy niż początkowy.',errTime:'Czas zakończenia musi być po rozpoczęciu.',
+   errFill:'Uzupełnij podświetlone pola, a następnie wyślij.',errTruck:'Dodaj co najmniej jeden pojazd.',errTrailer:'Dodaj co najmniej jedną naczepę.',errKm:'Końcowy KM musi być większy niż początkowy. Sprawdź obie liczby i popraw podświetlone pole.',errTime:'Czas zakończenia musi być po rozpoczęciu. Popraw podświetlony czas.',
    thanks:'Dziękujemy za przesłanie!',refLabel:'Numer',chooseShare:'Wybierz jedną z metod, aby udostępnić w grupie roboczej:',newEntry:'+ Nowy wpis',
    whatsapp:'Wyślij przez WhatsApp',pdf:'Pobierz PDF',excel:'Pobierz Excel',report:'Raport Pracy Kierowcy',
    chooseLang:'Wybierz język',langNote:'Aplikacja otwiera się automatycznie w języku telefonu.',accountBtn:'Moje Godziny',checkHours:'Moje Godziny',loginPrompt:'Zaloguj się, aby zobaczyć przesłane godziny.',
-   demoNote:'Demo — Kierowca: <b>Demo Driver</b>, Hasło: <b>demo</b>',name:'Imię kierowcy',password:'Hasło',passwordPh:'Wpisz hasło',confirmPw:'Potwierdź hasło',
+   name:'Imię kierowcy',password:'Hasło',passwordPh:'Wpisz hasło',confirmPw:'Potwierdź hasło',
    regCode:'Kod rejestracji',regCodePh:'Kod od menedżera',loginBtn:'Zaloguj',registerBtn:'Zarejestruj',back:'Powrót do formularza',
    myHours:'Moje Godziny',statEntries:'Wpisy',statHours:'Godziny',statKm:'Suma KM',signOut:'Wyloguj',welcome:'Witaj',
    errLogin:'Błędne imię lub hasło.',errMismatch:'Hasła nie są zgodne.',errCode:'Błędny kod rejestracji.',errExists:'Ten kierowca jest już zarejestrowany.',errShort:'Hasło musi mieć co najmniej 4 znaki.',noEntries:'Brak wpisów.'},
@@ -407,11 +478,11 @@ const T = {
    hStartKm:'Conta-quilómetros no início, ex. 12450.',hEndKm:'Conta-quilómetros no fim, ex. 12780.',hBreak:'Pausa total durante a viagem.',
    hStartT:'Quando começou a conduzir.',hEndT:'Quando terminou.',hRemarks:'Algo a registar (opcional), ex. atraso na fronteira.',hCode:'Peça este código ao seu gestor.',
    totalKm:'Total KM',totalTime:'Tempo Total',submit:'Submeter',reqNote:'Campos marcados com * são obrigatórios.',
-   errFill:'Preencha todos os campos obrigatórios.',errTruck:'Adicione pelo menos um camião.',errTrailer:'Adicione pelo menos um reboque.',errKm:'O KM Final deve ser maior que o KM Inicial.',errTime:'A Hora de Fim deve ser após a de Início.',
+   errFill:'Preencha os campos destacados e depois submeta.',errTruck:'Adicione pelo menos um camião.',errTrailer:'Adicione pelo menos um reboque.',errKm:'O KM Final deve ser maior que o KM Inicial. Verifique os dois números e corrija o campo destacado.',errTime:'A Hora de Fim deve ser após a de Início. Corrija a hora destacada.',
    thanks:'Obrigado por submeter!',refLabel:'Referência',chooseShare:'Escolha um destes métodos para partilhar no grupo de trabalho:',newEntry:'+ Novo registo',
    whatsapp:'Enviar via WhatsApp',pdf:'Descarregar PDF',excel:'Descarregar Excel',report:'Relatório de Trabalho',
    chooseLang:'Escolha o seu idioma',langNote:'A aplicação abre automaticamente no idioma do seu telemóvel.',accountBtn:'As Minhas Horas',checkHours:'As Minhas Horas',loginPrompt:'Inicie sessão para ver as horas submetidas.',
-   demoNote:'Demo — Motorista: <b>Demo Driver</b>, Senha: <b>demo</b>',name:'Nome do Motorista',password:'Senha',passwordPh:'Introduza a senha',confirmPw:'Confirmar senha',
+   name:'Nome do Motorista',password:'Senha',passwordPh:'Introduza a senha',confirmPw:'Confirmar senha',
    regCode:'Código de Registo',regCodePh:'Código do gestor',loginBtn:'Entrar',registerBtn:'Registar',back:'Voltar ao formulário',
    myHours:'As Minhas Horas',statEntries:'Registos',statHours:'Horas',statKm:'Total KM',signOut:'Sair',welcome:'Bem-vindo',
    errLogin:'Nome ou senha incorretos.',errMismatch:'As senhas não coincidem.',errCode:'Código de registo incorreto.',errExists:'Esse motorista já está registado.',errShort:'A senha deve ter pelo menos 4 caracteres.',noEntries:'Ainda sem registos.'},
@@ -426,11 +497,11 @@ const T = {
    hStartKm:'Kilometrajul la start, ex. 12450.',hEndKm:'Kilometrajul la final, ex. 12780.',hBreak:'Pauza totală în timpul cursei.',
    hStartT:'Când ați început să conduceți.',hEndT:'Când ați terminat.',hRemarks:'Ceva de menționat (opțional), ex. întârziere la graniță.',hCode:'Cereți acest cod managerului.',
    totalKm:'Total KM',totalTime:'Timp Total',submit:'Trimite',reqNote:'Câmpurile marcate cu * sunt obligatorii.',
-   errFill:'Completați toate câmpurile obligatorii.',errTruck:'Adăugați cel puțin un camion.',errTrailer:'Adăugați cel puțin o remorcă.',errKm:'KM Final trebuie să fie mai mare decât KM Start.',errTime:'Ora de Sfârșit trebuie să fie după Început.',
+   errFill:'Completați câmpurile evidențiate, apoi trimiteți.',errTruck:'Adăugați cel puțin un camion.',errTrailer:'Adăugați cel puțin o remorcă.',errKm:'KM Final trebuie să fie mai mare decât KM Start. Verificați ambele numere și corectați câmpul evidențiat.',errTime:'Ora de Sfârșit trebuie să fie după Început. Corectați ora evidențiată.',
    thanks:'Mulțumim pentru trimitere!',refLabel:'Referință',chooseShare:'Alegeți una dintre aceste metode pentru a partaja în grupul de lucru:',newEntry:'+ Fișă nouă',
    whatsapp:'Trimite prin WhatsApp',pdf:'Descarcă PDF',excel:'Descarcă Excel',report:'Raport de Lucru Șofer',
    chooseLang:'Alegeți limba',langNote:'Aplicația se deschide automat în limba telefonului dvs.',accountBtn:'Orele Mele',checkHours:'Orele Mele',loginPrompt:'Conectați-vă pentru a vedea orele trimise.',
-   demoNote:'Demo — Șofer: <b>Demo Driver</b>, Parolă: <b>demo</b>',name:'Numele Șoferului',password:'Parolă',passwordPh:'Introduceți parola',confirmPw:'Confirmați parola',
+   name:'Numele Șoferului',password:'Parolă',passwordPh:'Introduceți parola',confirmPw:'Confirmați parola',
    regCode:'Cod de Înregistrare',regCodePh:'Cod de la manager',loginBtn:'Conectare',registerBtn:'Înregistrare',back:'Înapoi la formular',
    myHours:'Orele Mele',statEntries:'Fișe',statHours:'Ore',statKm:'Total KM',signOut:'Deconectare',welcome:'Bun venit',
    errLogin:'Nume sau parolă greșite.',errMismatch:'Parolele nu se potrivesc.',errCode:'Cod de înregistrare greșit.',errExists:'Acest șofer este deja înregistrat.',errShort:'Parola trebuie să aibă cel puțin 4 caractere.',noEntries:'Încă nicio fișă.'}
@@ -439,20 +510,45 @@ const LANGS=[['en','English'],['nl','Nederlands'],['pl','Polski'],['pt','Portugu
 let lang='en';
 
 const REG_CODE='FLEET2026';
-let accounts={ 'demo driver':{name:'Demo Driver',pw:'demo'} };
-let entries=[
-  {ref:'DWE-20260603-7QK2',driver:'Demo Driver',client:'Maersk',truck:'TR-204',trailer:'TL-88',startKm:'12450',endKm:'12780',totalKm:330,startTime:'2026-06-03T06:30',endTime:'2026-06-03T15:10',breakMins:45,totalMins:475,remarks:'On time',submittedAt:'2026-06-03T15:12'},
-  {ref:'DWE-20260604-2MX9',driver:'Demo Driver',client:'DHL',truck:'TR-204, AB-99-CD',trailer:'TL-88',startKm:'12780',endKm:'13120',totalKm:340,startTime:'2026-06-04T05:45',endTime:'2026-06-04T14:00',breakMins:30,totalMins:465,remarks:'',submittedAt:'2026-06-04T14:03'}
-];
+let accounts={};
+let entries=[];
 let currentUser=null, authMode='login', lastEntry=null;
-let truckList=[], trailerList=[];
+const FLEET={
+  truck:['00-BJG-8','45-BSN-9','82-BJB-6','54-BVB-5','36-BNK-8','66-BLR-6','79-BLF-4','BB-980-D','47-BVJ-6','12-BSV-2','44-BGV-8','45-BSB-4','BB-656-F','33-BZZ-7','31-BGT-7','BB-386-P','BD-410-F'],
+  trailer:['OK-60-KP','OK-30-RY','OJ-94-BT','OJ-27-DG','OK-29-NR','OL-47-JS','OG-49-RY','OJ-97-KJ','OK-12-FZ','OK-86-LV'],
+  client:['Action (Distributee)','Action DC (International)','PostNL','Simon Loos','Ravensbergen','Rosendaal transport']
+};
+const picked={ truck:{set:new Set(),other:[]}, trailer:{set:new Set(),other:[]}, client:{set:new Set(),other:[]} };
+const sel={truck:[],trailer:[],client:[]};
+let pendingDriver=null;
+const DRIVER_CONTACT='the office';
+(function(){var ov={
+ en:{hTrucks:'Tick every truck you drove. Use "Other" to type one not on the list.',hTrailers:'Tick every trailer you used. Use "Other" to type one not on the list.',optOther:'Other — not in the list',plateInstr:'Type the plate (separate several with a comma):',platePh:'e.g. AB-123-C',searchPh:'Search plate…',selNone:'None selected yet'},
+ nl:{hTrucks:'Vink elke vrachtwagen aan die je hebt gereden. Gebruik "Overig" voor een onbekende.',hTrailers:'Vink elke oplegger aan die je hebt gebruikt. Gebruik "Overig" voor een onbekende.',optOther:'Overig — niet in de lijst',plateInstr:'Typ het kenteken (meerdere met komma scheiden):',platePh:'bijv. AB-123-C',searchPh:'Kenteken zoeken…',selNone:'Nog niets geselecteerd'},
+ pl:{hTrucks:'Zaznacz każdy pojazd, którym jechałeś. Użyj „Inny” dla spoza listy.',hTrailers:'Zaznacz każdą naczepę, której użyłeś. Użyj „Inny” dla spoza listy.',optOther:'Inny — spoza listy',plateInstr:'Wpisz numer (kilka oddziel przecinkiem):',platePh:'np. AB-123-C',searchPh:'Szukaj numeru…',selNone:'Nic nie wybrano'},
+ pt:{hTrucks:'Marque cada camião que conduziu. Use "Outro" para um fora da lista.',hTrailers:'Marque cada reboque que utilizou. Use "Outro" para um fora da lista.',optOther:'Outro — fora da lista',plateInstr:'Escreva a matrícula (separe várias com vírgula):',platePh:'ex. AB-123-C',searchPh:'Procurar matrícula…',selNone:'Nada selecionado'},
+ ro:{hTrucks:'Bifați fiecare camion condus. Folosiți „Altul” pentru unul din afara listei.',hTrailers:'Bifați fiecare remorcă folosită. Folosiți „Altul” pentru una din afara listei.',optOther:'Altul — nu este în listă',plateInstr:'Scrieți numărul (separați mai multe cu virgulă):',platePh:'ex. AB-123-C',searchPh:'Căutați numărul…',selNone:'Nimic selectat'}
+};for(var L in ov){if(T[L])for(var k in ov[L])T[L][k]=ov[L][k];}})();
+(function(){var ov={
+ en:{ddClient:'Select client…',searchClient:'Search client…',instrClient:'Type the client name:',phClient:'e.g. ACME Logistics',errClient:'Please choose a client.',hClient:'Choose the client you drove for.'},
+ nl:{ddClient:'Kies klant…',searchClient:'Klant zoeken…',instrClient:'Typ de klantnaam:',phClient:'bijv. ACME Logistics',errClient:'Kies een klant.',hClient:'Kies de klant voor wie je hebt gereden.'},
+ pl:{ddClient:'Wybierz klienta…',searchClient:'Szukaj klienta…',instrClient:'Wpisz nazwę klienta:',phClient:'np. ACME Logistics',errClient:'Wybierz klienta.',hClient:'Wybierz klienta, dla którego jechałeś.'},
+ pt:{ddClient:'Selecionar cliente…',searchClient:'Procurar cliente…',instrClient:'Escreva o nome do cliente:',phClient:'ex. ACME Logistics',errClient:'Escolha um cliente.',hClient:'Escolha o cliente para quem conduziu.'},
+ ro:{ddClient:'Selectați clientul…',searchClient:'Căutați clientul…',instrClient:'Scrieți numele clientului:',phClient:'ex. ACME Logistics',errClient:'Alegeți un client.',hClient:'Alegeți clientul pentru care ați condus.'}
+};for(var L in ov){if(T[L])for(var k in ov[L])T[L][k]=ov[L][k];}})();
 
+(function(){var ov={
+ en:{driverCode:'Driver code',hDriverCode:'Enter your personal code — your name appears to confirm.',driverCodePh:'e.g. 4821',confirmTitle:'Is this you?',confirmSub:'Check your name below before we save the entry.',yes:'Yes, that’s me',no:'No — check code',errDriverCode:'That code isn’t recognised. Please check it, or contact {c}.'},
+ nl:{driverCode:'Chauffeurscode',hDriverCode:'Voer je persoonlijke code in — je naam verschijnt ter controle.',driverCodePh:'bijv. 4821',confirmTitle:'Ben jij dit?',confirmSub:'Controleer je naam voordat we de invoer opslaan.',yes:'Ja, dat ben ik',no:'Nee — code checken',errDriverCode:'Code niet herkend. Controleer hem of neem contact op met {c}.'},
+ pl:{driverCode:'Kod kierowcy',hDriverCode:'Wpisz swój kod — Twoje imię pojawi się do potwierdzenia.',driverCodePh:'np. 4821',confirmTitle:'Czy to Ty?',confirmSub:'Sprawdź swoje imię, zanim zapiszemy wpis.',yes:'Tak, to ja',no:'Nie — sprawdź kod',errDriverCode:'Nie rozpoznano kodu. Sprawdź go lub skontaktuj się z {c}.'},
+ pt:{driverCode:'Código do motorista',hDriverCode:'Introduza o seu código — o seu nome aparece para confirmar.',driverCodePh:'ex. 4821',confirmTitle:'É você?',confirmSub:'Confirme o seu nome antes de guardarmos o registo.',yes:'Sim, sou eu',no:'Não — verificar código',errDriverCode:'Código não reconhecido. Verifique-o ou contacte {c}.'},
+ ro:{driverCode:'Cod șofer',hDriverCode:'Introduceți codul personal — numele apare pentru confirmare.',driverCodePh:'ex. 4821',confirmTitle:'Tu ești?',confirmSub:'Verificați numele înainte de a salva.',yes:'Da, eu sunt',no:'Nu — verifică codul',errDriverCode:'Cod nerecunoscut. Verificați-l sau contactați {c}.'}
+};for(var L in ov){if(T[L])for(var k in ov[L])T[L][k]=ov[L][k];}})();
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
 /* ===== BACKEND (your Google Sheet via Apps Script) =====
-   Paste your Web App URL between the quotes below.
-   Leave it empty ('') to keep using the offline demo. */
-const API_URL = '';
+   Paste your deployed Web App URL (ends in /exec) between the quotes. */
+const API_URL = 'https://script.google.com/macros/s/AKfycbyP7zcLkmIP_kc1qzIfgA7jTbIa8jw7rOGNrf_FbqSPv-4MvAXO7qpCCh0f7dAtqNbhug/exec';
 
 function jsonp(params){
   return new Promise(function(resolve,reject){
@@ -492,6 +588,7 @@ function setLang(code){
   document.querySelectorAll('[data-i18n-ph]').forEach(el=>{ const k=el.dataset.i18nPh; if(d[k]!==undefined) el.placeholder=d[k]; });
   document.getElementById('langLabel').textContent=(LANGS.find(l=>l[0]===code)||['','English'])[1];
   if(currentUser) document.getElementById('accountLabel').textContent=currentUser.name.split(' ')[0];
+  if(typeof refreshPickers==='function') refreshPickers();
   setAuthMode(authMode); calc();
 }
 
@@ -502,26 +599,62 @@ function showScreen(name){
 }
 function openAccount(){ if(currentUser){ openHours(); } else { showScreen('auth'); } }
 
-/* ===== VEHICLE PICKER ===== */
-function onVehSelect(kind){
-  const sel=document.getElementById(kind+'Select');
+/* ===== VEHICLE PICKER (checklist + Other) ===== */
+function buildChecklist(kind){
+  const box=document.getElementById(kind+'Checklist'); if(!box) return; const d=T[lang];
+  let html=FLEET[kind].map(function(pl){
+    const ck=picked[kind].set.has(pl)?' checked':'';
+    return '<label class="check-row" data-plate="'+esc(pl)+'"><input type="checkbox" value="'+esc(pl)+'"'+ck+' onchange="togglePlate(\''+kind+'\',this)"><span class="pl">'+esc(pl)+'</span></label>';
+  }).join('');
+  const oc=picked[kind].set.has('__other__')?' checked':'';
+  html+='<label class="check-row other-row"><input type="checkbox"'+oc+' onchange="toggleOther(\''+kind+'\',this)"><span class="pl other">'+esc(d.optOther)+'</span></label>';
+  box.innerHTML=html;
+  const s=document.getElementById(kind+'Search'); if(s) s.style.display=FLEET[kind].length>6?'':'none';
+}
+function togglePlate(kind,cb){ if(cb.checked) picked[kind].set.add(cb.value); else picked[kind].set.delete(cb.value); recompute(kind); }
+function toggleOther(kind,cb){
   const box=document.getElementById(kind+'Other');
-  if(sel.value==='other'){ box.style.display='block'; document.getElementById(kind+'Plate').focus(); }
-  else box.style.display='none';
+  if(cb.checked){ picked[kind].set.add('__other__'); box.style.display='block'; document.getElementById(kind+'OtherInput').focus(); }
+  else { picked[kind].set.delete('__other__'); box.style.display='none'; document.getElementById(kind+'OtherInput').value=''; picked[kind].other=[]; }
+  recompute(kind);
 }
-function addVeh(kind){
-  const inp=document.getElementById(kind+'Plate'); const v=inp.value.trim(); if(!v) return;
-  (kind==='truck'?truckList:trailerList).push(v);
-  inp.value=''; document.getElementById(kind+'Other').style.display='none';
-  document.getElementById(kind+'Select').value=''; document.getElementById('f-'+kind).classList.remove('bad');
-  renderChips(kind);
+function onOther(kind){ picked[kind].other=document.getElementById(kind+'OtherInput').value.split(',').map(function(s){return s.trim();}).filter(Boolean); recompute(kind); }
+function recompute(kind){
+  const p=picked[kind];
+  const list=FLEET[kind].filter(function(x){return p.set.has(x);}).concat(p.other);
+  sel[kind]=list;
+  renderSel(kind); updateLabel(kind);
+  const f=document.getElementById('f-'+kind); if(f) f.classList.remove('bad');
 }
-function removeVeh(kind,i){ (kind==='truck'?truckList:trailerList).splice(i,1); renderChips(kind); }
-function renderChips(kind){
-  const arr=kind==='truck'?truckList:trailerList;
-  document.getElementById(kind+'Chips').innerHTML=arr.map((p,i)=>
-    '<span class="chip">'+esc(p)+'<span class="x" onclick="removeVeh(\''+kind+'\','+i+')" aria-label="remove">✕</span></span>').join('');
+function renderSel(kind){
+  const box=document.getElementById(kind+'Sel'); if(!box) return; const d=T[lang];
+  const list=sel[kind];
+  box.innerHTML=list.length ? list.map(function(p){return '<span class="chip">'+esc(p)+'</span>';}).join('') : '<span class="sel-none">'+esc(d.selNone)+'</span>';
 }
+function filterList(kind){
+  const q=document.getElementById(kind+'Search').value.toLowerCase();
+  document.querySelectorAll('#'+kind+'Checklist .check-row').forEach(function(row){
+    if(row.classList.contains('other-row')) return;
+    const pl=(row.getAttribute('data-plate')||'').toLowerCase();
+    row.style.display = pl.indexOf(q)>=0 ? '' : 'none';
+  });
+}
+function refreshPickers(){ ['truck','trailer','client'].forEach(function(k){ buildChecklist(k); renderSel(k); updateLabel(k); }); }
+function updateLabel(kind){
+  const d=T[lang]; const list=sel[kind];
+  const lbl=document.getElementById(kind+'DDlabel'); const dd=document.getElementById(kind+'DD'); if(!lbl||!dd) return;
+  if(list.length){ lbl.textContent=list.length+' '+d.selected; dd.classList.add('has-sel'); }
+  else { lbl.textContent=(kind==='truck'?d.ddTruck:kind==='trailer'?d.ddTrailer:d.ddClient); dd.classList.remove('has-sel'); }
+}
+function toggleDD(kind){ document.getElementById(kind+'DD').classList.toggle('open'); }
+document.addEventListener('click',function(e){ document.querySelectorAll('.dropdown.open').forEach(function(dd){ if(!dd.contains(e.target)) dd.classList.remove('open'); }); });
+(function(){var ov={
+ en:{ddTruck:'Select trucks…',ddTrailer:'Select trailers…',selected:'selected'},
+ nl:{ddTruck:'Kies vrachtwagens…',ddTrailer:'Kies opleggers…',selected:'geselecteerd'},
+ pl:{ddTruck:'Wybierz pojazdy…',ddTrailer:'Wybierz naczepy…',selected:'wybrane'},
+ pt:{ddTruck:'Selecionar camiões…',ddTrailer:'Selecionar reboques…',selected:'selecionado(s)'},
+ ro:{ddTruck:'Selectați camioane…',ddTrailer:'Selectați remorci…',selected:'selectate'}
+};for(var L in ov){if(T[L])for(var k in ov[L])T[L][k]=ov[L][k];}})();
 
 function val(id){ return document.getElementById(id).value; }
 function calc(){
@@ -534,47 +667,68 @@ function calc(){
   document.getElementById('totalTime').textContent=Math.floor(mins/60)+'h '+(mins%60)+'m';
 }
 
-const REQUIRED=['driver','client','startKm','endKm','startTime','endTime'];
-function submitEntry(){
+const REQUIRED=['driver','firstStop','lastStop','startKm','endKm','startTime','endTime'];
+async function submitEntry(){
   const d=T[lang]; const err=document.getElementById('errbar'); let firstBad=null;
   REQUIRED.forEach(id=>{ const wrap=document.getElementById('f-'+id);
     if(!val(id).trim()){ wrap.classList.add('bad'); if(!firstBad)firstBad=wrap; } else wrap.classList.remove('bad'); });
   function fail(msg,wrap){ err.textContent=msg; err.classList.add('show'); (wrap||firstBad).scrollIntoView({behavior:'smooth',block:'center'}); }
   if(firstBad) return fail(d.errFill);
-  if(!truckList.length){ document.getElementById('f-truck').classList.add('bad'); return fail(d.errTruck,document.getElementById('f-truck')); }
-  if(!trailerList.length){ document.getElementById('f-trailer').classList.add('bad'); return fail(d.errTrailer,document.getElementById('f-trailer')); }
+  if(!sel.client.length){ document.getElementById('f-client').classList.add('bad'); document.getElementById('clientDD').classList.add('open'); return fail(d.errClient,document.getElementById('f-client')); }
+  if(!sel.truck.length){ document.getElementById('f-truck').classList.add('bad'); document.getElementById('truckDD').classList.add('open'); return fail(d.errTruck,document.getElementById('f-truck')); }
+  if(!sel.trailer.length){ document.getElementById('f-trailer').classList.add('bad'); document.getElementById('trailerDD').classList.add('open'); return fail(d.errTrailer,document.getElementById('f-trailer')); }
   document.getElementById('f-truck').classList.remove('bad'); document.getElementById('f-trailer').classList.remove('bad');
   if(parseFloat(val('endKm'))<=parseFloat(val('startKm'))){ document.getElementById('f-endKm').classList.add('bad'); return fail(d.errKm,document.getElementById('f-endKm')); }
   if(new Date(val('endTime'))<=new Date(val('startTime'))){ document.getElementById('f-endTime').classList.add('bad'); return fail(d.errTime,document.getElementById('f-endTime')); }
   err.classList.remove('show');
+  const code=val('driver').trim();
+  const drv=await lookupDriver(code);
+  if(!drv.found){ document.getElementById('f-driver').classList.add('bad'); return fail(d.errDriverCode.replace('{c}',DRIVER_CONTACT),document.getElementById('f-driver')); }
+  document.getElementById('f-driver').classList.remove('bad');
+  pendingDriver={code:code,name:drv.name,id:drv.id};
+  document.getElementById('confirmName').textContent=drv.name;
+  document.getElementById('confirmOverlay').classList.add('show');
+}
+function finalizeEntry(){
+  document.getElementById('confirmOverlay').classList.remove('show');
   const km=parseFloat(val('endKm'))-parseFloat(val('startKm'));
   const brk=(parseInt(val('breakH'))||0)*60+(parseInt(val('breakM'))||0);
   const mins=Math.max(0,Math.round((new Date(val('endTime'))-new Date(val('startTime')))/60000-brk));
   const ref='DWE-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'-'+Math.random().toString(36).slice(2,6).toUpperCase();
-  const entry={ ref, driver:val('driver'), client:val('client'), truck:truckList.join(', '), trailer:trailerList.join(', '),
+  const entry={ ref, driver:pendingDriver.name, driverId:pendingDriver.id, client:sel.client.join(', '), truck:sel.truck.join(', '), trailer:sel.trailer.join(', '), firstStop:val('firstStop'), lastStop:val('lastStop'),
     startKm:val('startKm'), endKm:val('endKm'), totalKm:km, startTime:val('startTime'), endTime:val('endTime'),
     breakMins:brk, totalMins:mins, remarks:val('remarks'), submittedAt:new Date().toISOString().slice(0,16) };
-  /* LATER: POST `entry` to the Google Sheet backend here. */
   entries.push(entry); lastEntry=entry;
   if(API_URL){ jsonp(Object.assign({action:'submit'},entry)).catch(function(){}); }
   document.getElementById('refOut').textContent=ref;
   resetForm(); showScreen('success');
 }
+function confirmNo(){ document.getElementById('confirmOverlay').classList.remove('show'); var el=document.getElementById('driver'); document.getElementById('f-driver').classList.add('bad'); el.focus(); el.select(); el.scrollIntoView({behavior:'smooth',block:'center'}); }
+async function lookupDriver(code){
+  if(!code||!API_URL) return {found:false};
+  try{ var r=await jsonp({action:'driver',code:code}); return (r&&r.found)?{found:true,name:r.name,id:r.id}:{found:false}; }
+  catch(e){ return {found:false}; }
+}
 function resetForm(){
-  ['driver','client','startKm','endKm','remarks','startTime','endTime'].forEach(id=>document.getElementById(id).value='');
+  ['driver','firstStop','lastStop','startKm','endKm','remarks','startTime','endTime'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('breakH').value=0; document.getElementById('breakM').value=0;
-  truckList=[]; trailerList=[]; renderChips('truck'); renderChips('trailer');
-  document.getElementById('truckOther').style.display='none'; document.getElementById('trailerOther').style.display='none';
-  document.getElementById('truckSelect').value=''; document.getElementById('trailerSelect').value='';
-  ['driver','client','startKm','endKm','startTime','endTime','truck','trailer'].forEach(id=>{ const el=document.getElementById('f-'+id); if(el) el.classList.remove('bad'); });
-  if(currentUser) document.getElementById('driver').value=currentUser.name;
+  ['truck','trailer','client'].forEach(function(k){
+    picked[k]={set:new Set(),other:[]};
+    var oi=document.getElementById(k+'OtherInput'); if(oi) oi.value='';
+    var ob=document.getElementById(k+'Other'); if(ob) ob.style.display='none';
+    var s=document.getElementById(k+'Search'); if(s) s.value='';
+    buildChecklist(k); recompute(k); filterList(k);
+  });
+  ['driver','client','firstStop','lastStop','startKm','endKm','startTime','endTime','truck','trailer'].forEach(id=>{ const el=document.getElementById('f-'+id); if(el) el.classList.remove('bad'); });
   calc();
 }
+
 function newEntry(){ showScreen('entry'); }
 
 function fmtDt(s){ return s? new Date(s).toLocaleString() : '-'; }
 function rowsFor(e){ const d=T[lang]; return [
   [d.refLabel,e.ref],[d.driver,e.driver],[d.client,e.client],[d.truck,e.truck],[d.trailer,e.trailer],
+  [d.firstStop,e.firstStop],[d.lastStop,e.lastStop],
   [d.startKm,e.startKm],[d.endKm,e.endKm],[d.totalKm,e.totalKm+' km'],
   [d.startTime,fmtDt(e.startTime)],[d.endTime,fmtDt(e.endTime)],
   [d.breakTime,Math.floor(e.breakMins/60)+'h '+(e.breakMins%60)+'m'],
@@ -582,15 +736,26 @@ function rowsFor(e){ const d=T[lang]; return [
   [d.remarks,e.remarks||'-'] ]; }
 function shareWhatsApp(){ if(!lastEntry)return; const d=T[lang]; let t='*'+d.report+'*\n\n';
   rowsFor(lastEntry).forEach(([k,v])=>t+=k+': '+v+'\n'); window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank'); }
+async function saveOrShare(blob, filename, mime){
+  try{
+    var file=new File([blob],filename,{type:mime});
+    if(navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file],title:filename}); return; }
+  }catch(e){ if(e&&e.name==='AbortError') return; }
+  var url=URL.createObjectURL(blob); var a=document.createElement('a');
+  a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); },4000);
+}
 function sharePDF(){ if(!lastEntry)return; const {jsPDF}=window.jspdf; const doc=new jsPDF(); const d=T[lang];
   doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.text(d.report,14,20); doc.setDrawColor(245,158,11); doc.setLineWidth(1); doc.line(14,24,196,24);
   doc.setFontSize(11); let y=34;
   rowsFor(lastEntry).forEach(([k,v])=>{ doc.setFont('helvetica','bold'); doc.text(String(k)+':',14,y);
     doc.setFont('helvetica','normal'); doc.text(doc.splitTextToSize(String(v),120),70,y); y+=9; });
-  doc.save('driver-work-entry.pdf'); }
+  var fn='driver-work-entry-'+(lastEntry.ref||'')+'.pdf'; saveOrShare(doc.output('blob'),fn,'application/pdf'); }
 function shareExcel(){ if(!lastEntry)return; const data=[['Field','Value'],...rowsFor(lastEntry)];
   const ws=XLSX.utils.aoa_to_sheet(data); ws['!cols']=[{wch:22},{wch:40}];
-  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Work Entry'); XLSX.writeFile(wb,'driver-work-entry.xlsx'); }
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Work Entry');
+  var out=XLSX.write(wb,{bookType:'xlsx',type:'array'}); var fn='driver-work-entry-'+(lastEntry.ref||'')+'.xlsx';
+  saveOrShare(new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),fn,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); }
 
 function setAuthMode(mode){ authMode=mode; const d=T[lang];
   document.getElementById('tab-login').classList.toggle('active',mode==='login');
@@ -620,17 +785,7 @@ async function doAuth(){
       }
       currentUser={name:res.name||name};
     }catch(err){ return authFail('errLogin'); }
-  } else {
-    const key=name.toLowerCase();
-    if(authMode==='register'){
-      if(pw.length<4) return authFail('errShort');
-      if(pw!==document.getElementById('auPw2').value) return authFail('errMismatch');
-      if(document.getElementById('auCode').value.trim()!==REG_CODE) return authFail('errCode');
-      if(accounts[key]) return authFail('errExists');
-      accounts[key]={name,pw};
-    } else { if(!accounts[key]||accounts[key].pw!==pw) return authFail('errLogin'); }
-    currentUser={name:accounts[key].name};
-  }
+  } else { return authFail('errLogin'); }
   document.getElementById('auPw').value=''; document.getElementById('auPw2').value='';
   document.getElementById('accountLabel').textContent=currentUser.name.split(' ')[0];
   openHours();
@@ -656,9 +811,20 @@ function renderHours(){
 }
 
 /* ===== START: auto-detect the phone's language ===== */
-const navLang=((navigator.language||navigator.userLanguage||'en').slice(0,2)).toLowerCase();
-const startLang=T[navLang]?navLang:'en';
-buildLangList(); setLang(startLang); renderChips('truck'); renderChips('trailer'); calc();
+(function(){var ov={
+ en:{firstStop:'First stop address (loading/unloading)',hFirstStop:'Where the first pick-up or drop-off was.',firstStopPh:'Street, city, country',lastStop:'Last stop address (loading/unloading)',hLastStop:'Where the last pick-up or drop-off was.',lastStopPh:'Street, city, country'},
+ nl:{firstStop:'Adres eerste stop (laden/lossen)',hFirstStop:'Waar de eerste stop was.',firstStopPh:'Straat, plaats, land',lastStop:'Adres laatste stop (laden/lossen)',hLastStop:'Waar de laatste stop was.',lastStopPh:'Straat, plaats, land'},
+ pl:{firstStop:'Adres pierwszego przystanku (załadunek/rozładunek)',hFirstStop:'Gdzie był pierwszy przystanek.',firstStopPh:'Ulica, miasto, kraj',lastStop:'Adres ostatniego przystanku (załadunek/rozładunek)',hLastStop:'Gdzie był ostatni przystanek.',lastStopPh:'Ulica, miasto, kraj'},
+ pt:{firstStop:'Morada da primeira paragem (carga/descarga)',hFirstStop:'Onde foi a primeira paragem.',firstStopPh:'Rua, cidade, país',lastStop:'Morada da última paragem (carga/descarga)',hLastStop:'Onde foi a última paragem.',lastStopPh:'Rua, cidade, país'},
+ ro:{firstStop:'Adresa primei opriri (încărcare/descărcare)',hFirstStop:'Unde a fost prima oprire.',firstStopPh:'Stradă, oraș, țară',lastStop:'Adresa ultimei opriri (încărcare/descărcare)',hLastStop:'Unde a fost ultima oprire.',lastStopPh:'Stradă, oraș, țară'}
+};for(var L in ov){if(T[L])for(var k in ov[L])T[L][k]=ov[L][k];}})();
+function detectLang(){
+  var cands=(navigator.languages&&navigator.languages.length)?navigator.languages:[navigator.language||navigator.userLanguage||'en'];
+  for(var i=0;i<cands.length;i++){ var two=(cands[i]||'').slice(0,2).toLowerCase(); if(T[two]) return two; }
+  return 'en';
+}
+const startLang=detectLang();
+buildLangList(); buildChecklist('truck'); buildChecklist('trailer'); buildChecklist('client'); setLang(startLang); recompute('truck'); recompute('trailer'); recompute('client'); calc();
 </script>
 </body>
 </html>
