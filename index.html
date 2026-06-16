@@ -325,7 +325,7 @@
         <div class="total-box"><div class="k" data-i18n="totalTime">Total Time</div><div class="v" id="totalTime">0h 0m</div></div>
       </div>
 
-      <button class="btn btn-primary" onclick="submitEntry()" data-i18n="submit">Submit</button>
+      <button class="btn btn-primary" id="submitBtn" onclick="submitEntry()" data-i18n="submit">Submit</button>
       <div class="foot" data-i18n="reqNote">Fields marked * are required.</div>
     </div>
 
@@ -515,7 +515,7 @@ let lang='en';
 const REG_CODE='FLEET2026';
 let accounts={};
 let entries=[];
-let currentUser=null, authMode='login', lastEntry=null;
+let currentUser=null, authMode='login', lastEntry=null, submitting=false;
 const FLEET={
   truck:['00-BJG-8','45-BSN-9','82-BJB-6','54-BVB-5','36-BNK-8','66-BLR-6','79-BLF-4','BB-980-D','47-BVJ-6','12-BSV-2','44-BGV-8','45-BSB-4','BB-656-F','33-BZZ-7','31-BGT-7','BB-386-P','BD-410-F'],
   trailer:['OK-60-KP','OK-30-RY','OJ-94-BT','OJ-27-DG','OK-29-NR','OL-47-JS','OG-49-RY','OJ-97-KJ','OK-12-FZ','OK-86-LV'],
@@ -680,7 +680,9 @@ const REQUIRED=['driver','firstStop','lastStop','startKm','endKm','startTime','e
 };for(var L in ov){if(T[L])for(var k in ov[L])T[L][k]=ov[L][k];}})();
 function setErr(id,msg){ var f=document.getElementById(id); if(!f) return null; f.classList.add('bad'); var e=f.querySelector('.field-err'); if(e) e.textContent=msg; return f; }
 function clearErrs(){ document.querySelectorAll('.field.bad').forEach(function(f){ f.classList.remove('bad'); var e=f.querySelector('.field-err'); if(e) e.textContent=''; }); }
+function setBusy(on){ submitting=on; var b=document.getElementById('submitBtn'); if(b){ b.disabled=on; b.textContent= on ? T[lang].submitting : T[lang].submit; } }
 async function submitEntry(){
+  if(submitting) return;
   const d=T[lang]; clearErrs(); var firstBad=null;
   function mark(id,msg){ var f=setErr(id,msg); if(f&&!firstBad) firstBad=f; }
   REQUIRED.forEach(function(id){ if(!val(id).trim()) mark('f-'+id, d.fillThis); });
@@ -691,14 +693,16 @@ async function submitEntry(){
   if(parseFloat(val('endKm'))<=parseFloat(val('startKm'))) mark('f-endKm', d.errKm);
   if(new Date(val('endTime'))<=new Date(val('startTime'))) mark('f-endTime', d.errTime);
   if(firstBad){ firstBad.scrollIntoView({behavior:'smooth',block:'center'}); return; }
+  setBusy(true);
   const code=val('driver').trim();
   const drv=await lookupDriver(code);
-  if(!drv.found){ var f=setErr('f-driver', d.errDriverCode.replace('{c}',DRIVER_CONTACT)); f.scrollIntoView({behavior:'smooth',block:'center'}); return; }
+  if(!drv.found){ setBusy(false); var f=setErr('f-driver', d.errDriverCode.replace('{c}',DRIVER_CONTACT)); f.scrollIntoView({behavior:'smooth',block:'center'}); return; }
   pendingDriver={code:code,name:drv.name,id:drv.id};
   document.getElementById('confirmName').textContent=drv.name;
   document.getElementById('confirmOverlay').classList.add('show');
 }
 function finalizeEntry(){
+  if(!submitting) return; submitting=false;
   document.getElementById('confirmOverlay').classList.remove('show');
   const km=parseFloat(val('endKm'))-parseFloat(val('startKm'));
   const brk=(parseInt(val('breakH'))||0)*60+(parseInt(val('breakM'))||0);
@@ -710,9 +714,9 @@ function finalizeEntry(){
   entries.push(entry); lastEntry=entry;
   if(API_URL){ jsonp(Object.assign({action:'submit'},entry)).catch(function(){}); }
   document.getElementById('refOut').textContent=ref;
-  resetForm(); showScreen('success');
+  resetForm(); var sb=document.getElementById('submitBtn'); if(sb){ sb.disabled=false; sb.textContent=T[lang].submit; } showScreen('success');
 }
-function confirmNo(){ document.getElementById('confirmOverlay').classList.remove('show'); var el=document.getElementById('driver'); setErr('f-driver', T[lang].reenter); el.focus(); el.select(); el.scrollIntoView({behavior:'smooth',block:'center'}); }
+function confirmNo(){ document.getElementById('confirmOverlay').classList.remove('show'); setBusy(false); var el=document.getElementById('driver'); setErr('f-driver', T[lang].reenter); el.focus(); el.select(); el.scrollIntoView({behavior:'smooth',block:'center'}); }
 async function lookupDriver(code){
   if(!code||!API_URL) return {found:false};
   try{ var r=await jsonp({action:'driver',code:code}); return (r&&r.found)?{found:true,name:r.name,id:r.id}:{found:false}; }
@@ -752,9 +756,15 @@ function saveOrShare(blob, filename, mime){
 }
 function sharePDF(){ if(!lastEntry)return; const {jsPDF}=window.jspdf; const doc=new jsPDF(); const d=T[lang];
   doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.text(d.report,14,20); doc.setDrawColor(245,158,11); doc.setLineWidth(1); doc.line(14,24,196,24);
-  doc.setFontSize(11); let y=34;
-  rowsFor(lastEntry).forEach(([k,v])=>{ doc.setFont('helvetica','bold'); doc.text(String(k)+':',14,y);
-    doc.setFont('helvetica','normal'); doc.text(doc.splitTextToSize(String(v),120),70,y); y+=9; });
+  doc.setFontSize(11); let y=34; var labelX=14, valX=84, labW=valX-labelX-3, valW=196-valX;
+  rowsFor(lastEntry).forEach(function(row){ var k=row[0], v=row[1];
+    doc.setFont('helvetica','bold'); var kl=doc.splitTextToSize(String(k)+':', labW);
+    doc.setFont('helvetica','normal'); var vl=doc.splitTextToSize(String(v), valW);
+    doc.setFont('helvetica','bold'); doc.text(kl, labelX, y);
+    doc.setFont('helvetica','normal'); doc.text(vl, valX, y);
+    y += Math.max(kl.length, vl.length)*6 + 3;
+    if(y>284){ doc.addPage(); y=20; }
+  });
   var fn='driver-work-entry-'+(lastEntry.ref||'')+'.pdf'; saveOrShare(doc.output('blob'),fn,'application/pdf'); }
 function shareExcel(){ if(!lastEntry)return; const data=[['Field','Value'],...rowsFor(lastEntry)];
   const ws=XLSX.utils.aoa_to_sheet(data); ws['!cols']=[{wch:22},{wch:40}];
@@ -822,6 +832,13 @@ function renderHours(){
  pl:{firstStop:'Adres pierwszego przystanku (załadunek/rozładunek)',hFirstStop:'Gdzie był pierwszy przystanek.',firstStopPh:'Ulica, miasto, kraj',lastStop:'Adres ostatniego przystanku (załadunek/rozładunek)',hLastStop:'Gdzie był ostatni przystanek.',lastStopPh:'Ulica, miasto, kraj'},
  pt:{firstStop:'Morada da primeira paragem (carga/descarga)',hFirstStop:'Onde foi a primeira paragem.',firstStopPh:'Rua, cidade, país',lastStop:'Morada da última paragem (carga/descarga)',hLastStop:'Onde foi a última paragem.',lastStopPh:'Rua, cidade, país'},
  ro:{firstStop:'Adresa primei opriri (încărcare/descărcare)',hFirstStop:'Unde a fost prima oprire.',firstStopPh:'Stradă, oraș, țară',lastStop:'Adresa ultimei opriri (încărcare/descărcare)',hLastStop:'Unde a fost ultima oprire.',lastStopPh:'Stradă, oraș, țară'}
+};for(var L in ov){if(T[L])for(var k in ov[L])T[L][k]=ov[L][k];}})();
+(function(){var ov={
+ en:{submitting:'Submitting, please wait…'},
+ nl:{submitting:'Verzenden, even geduld…'},
+ pl:{submitting:'Wysyłanie, proszę czekać…'},
+ pt:{submitting:'A submeter, aguarde…'},
+ ro:{submitting:'Se trimite, așteptați…'}
 };for(var L in ov){if(T[L])for(var k in ov[L])T[L][k]=ov[L][k];}})();
 function detectLang(){
   var cands=(navigator.languages&&navigator.languages.length)?navigator.languages:[navigator.language||navigator.userLanguage||'en'];
