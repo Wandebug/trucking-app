@@ -749,25 +749,20 @@ function rowsFor(e){ const d=T[lang]; return [
   [d.remarks,e.remarks||'-'] ]; }
 function shareWhatsApp(){ if(!lastEntry)return; const d=T[lang]; let t='*'+d.report+'*\n\n';
   rowsFor(lastEntry).forEach(([k,v])=>t+=k+': '+v+'\n'); window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank'); }
-async function saveOrShare(blob, filename, mime){
-  /* 1) phones: hand the file to the OS Save/Share sheet (Save to Files / Files / Drive) */
-  try{
-    var file=new File([blob],filename,{type:mime});
-    if(navigator.canShare && navigator.canShare({files:[file]})){
-      await navigator.share({files:[file], title:filename, text:filename});
-      return;
-    }
-  }catch(e){ if(e && e.name==='AbortError') return; }
-  /* 2) computers / browsers that allow it: straight download */
-  try{
-    var url=URL.createObjectURL(blob);
-    var a=document.createElement('a'); a.href=url; a.download=filename;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(function(){ URL.revokeObjectURL(url); },6000);
-    return;
-  }catch(e2){}
-  /* 3) last resort: open it so the browser viewer can save it */
-  try{ window.open(URL.createObjectURL(blob),'_blank'); }catch(e3){}
+async function saveFile(blob, dataUri, filename, mime){
+  var ua=navigator.userAgent||'';
+  var isIOS=/iP(hone|ad|od)/.test(ua) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+  /* iPhone/iPad: a page-built file can only be kept via the Save sheet (Save to Files) */
+  if(isIOS && navigator.canShare){
+    try{ var f=new File([blob],filename,{type:mime});
+      if(navigator.canShare({files:[f]})){ await navigator.share({files:[f], title:filename}); return; }
+    }catch(e){ if(e && e.name==='AbortError') return; }
+  }
+  /* Android + desktop: download via a data: URL — Samsung's download manager saves this to Downloads */
+  var a=document.createElement('a');
+  a.href=dataUri; a.download=filename; a.rel='noopener';
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ a.remove(); }, 1500);
 }
 function sharePDF(){ if(!lastEntry)return; const {jsPDF}=window.jspdf; const doc=new jsPDF(); const d=T[lang];
   doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.text(d.report,14,20); doc.setDrawColor(245,158,11); doc.setLineWidth(1); doc.line(14,24,196,24);
@@ -780,12 +775,15 @@ function sharePDF(){ if(!lastEntry)return; const {jsPDF}=window.jspdf; const doc
     y += Math.max(kl.length, vl.length)*6 + 3;
     if(y>284){ doc.addPage(); y=20; }
   });
-  var fn='driver-work-entry-'+(lastEntry.ref||'')+'.pdf'; saveOrShare(doc.output('blob'),fn,'application/pdf'); }
+  var fn='driver-work-entry-'+(lastEntry.ref||'')+'.pdf';
+  saveFile(doc.output('blob'), doc.output('datauristring').replace(/filename=[^;]+;/,''), fn, 'application/pdf'); }
 function shareExcel(){ if(!lastEntry)return; const data=[['Field','Value'],...rowsFor(lastEntry)];
   const ws=XLSX.utils.aoa_to_sheet(data); ws['!cols']=[{wch:22},{wch:40}];
   const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Work Entry');
-  var out=XLSX.write(wb,{bookType:'xlsx',type:'array'}); var fn='driver-work-entry-'+(lastEntry.ref||'')+'.xlsx';
-  saveOrShare(new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),fn,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); }
+  var out=XLSX.write(wb,{bookType:'xlsx',type:'array'}); var b64=XLSX.write(wb,{bookType:'xlsx',type:'base64'});
+  var mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  var fn='driver-work-entry-'+(lastEntry.ref||'')+'.xlsx';
+  saveFile(new Blob([out],{type:mime}), 'data:'+mime+';base64,'+b64, fn, mime); }
 
 function setAuthMode(mode){ authMode=mode; const d=T[lang];
   document.getElementById('tab-login').classList.toggle('active',mode==='login');
