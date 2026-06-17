@@ -747,15 +747,8 @@ function rowsFor(e){ const d=T[lang]; return [
   [d.breakTime,Math.floor(e.breakMins/60)+'h '+(e.breakMins%60)+'m'],
   [d.totalTime,Math.floor(e.totalMins/60)+'h '+(e.totalMins%60)+'m'],
   [d.remarks,e.remarks||'-'] ]; }
-async function shareWhatsApp(){ if(!lastEntry)return; const d=T[lang];
+function shareWhatsApp(){ if(!lastEntry)return; const d=T[lang];
   var t='*'+d.report+'*\n\n'; rowsFor(lastEntry).forEach(function(r){ t+=r[0]+': '+r[1]+'\n'; });
-  var fn='driver-work-entry-'+(lastEntry.ref||'')+'.pdf';
-  try{
-    var blob=makePdf().output('blob'); var f=new File([blob],fn,{type:'application/pdf'});
-    if(navigator.canShare && navigator.canShare({files:[f]})){
-      await navigator.share({files:[f], title:fn, text:t}); return;
-    }
-  }catch(e){ if(e && e.name==='AbortError') return; }
   window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank');
 }
 async function saveFile(blob, dataUri, filename, mime){
