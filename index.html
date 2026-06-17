@@ -751,16 +751,19 @@ function shareWhatsApp(){ if(!lastEntry)return; const d=T[lang]; let t='*'+d.rep
   rowsFor(lastEntry).forEach(([k,v])=>t+=k+': '+v+'\n'); window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank'); }
 async function saveFile(blob, dataUri, filename, mime){
   var ua=navigator.userAgent||'';
-  var isIOS=/iP(hone|ad|od)/.test(ua) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
-  /* iPhone/iPad: a page-built file can only be kept via the Save sheet (Save to Files) */
-  if(isIOS && navigator.canShare){
-    try{ var f=new File([blob],filename,{type:mime});
+  var iOS=/iP(hone|ad|od)/.test(ua) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+  var samsung=/SamsungBrowser/i.test(ua);
+  /* Samsung Internet & iPhone/iPad block silent downloads of page-built files,
+     so use the system Save sheet (tap "Save to My Files" / "Save to Files" / "Download"). */
+  if((iOS || samsung) && navigator.canShare){
+    try{
+      var f=new File([blob],filename,{type:mime});
       if(navigator.canShare({files:[f]})){ await navigator.share({files:[f], title:filename}); return; }
     }catch(e){ if(e && e.name==='AbortError') return; }
   }
-  /* Android + desktop: download via a data: URL — Samsung's download manager saves this to Downloads */
+  /* Chrome, Firefox, Edge, desktop: straight download to the Downloads folder. */
   var a=document.createElement('a');
-  a.href=dataUri; a.download=filename; a.rel='noopener';
+  a.href=dataUri || URL.createObjectURL(blob); a.download=filename; a.rel='noopener';
   document.body.appendChild(a); a.click();
   setTimeout(function(){ a.remove(); }, 1500);
 }
