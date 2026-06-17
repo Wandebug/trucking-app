@@ -762,15 +762,19 @@ async function saveFile(blob, dataUri, filename, mime){
   var ua=navigator.userAgent||'';
   var iOS=/iP(hone|ad|od)/.test(ua) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
   var samsung=/SamsungBrowser/i.test(ua);
-  /* Samsung Internet & iPhone/iPad block silent downloads of page-built files,
-     so use the system Save sheet (tap "Save to My Files" / "Save to Files" / "Download"). */
-  if((iOS || samsung) && navigator.canShare){
+  /* Samsung Internet & iPhone can't silently save a page-built file. Instead of dumping it
+     into Notes, open the share menu so the driver can send the PDF to WhatsApp or Save to Files. */
+  if((iOS || samsung) && navigator.share){
     try{
       var f=new File([blob],filename,{type:mime});
-      if(navigator.canShare({files:[f]})){ await navigator.share({files:[f], title:filename}); return; }
-    }catch(e){ if(e && e.name==='AbortError') return; }
+      await navigator.share({files:[f], title:filename, text:filename});
+      return;
+    }catch(e){
+      if(e && e.name==='AbortError') return;   /* user closed the share menu */
+      /* this browser can't share files -> fall through to a normal download */
+    }
   }
-  /* Chrome, Firefox, Edge, desktop: straight download to the Downloads folder. */
+  /* Chrome, Firefox, Edge, desktop: instant download to the Downloads folder. */
   var a=document.createElement('a');
   a.href=dataUri || URL.createObjectURL(blob); a.download=filename; a.rel='noopener';
   document.body.appendChild(a); a.click();
