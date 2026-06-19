@@ -194,6 +194,22 @@
   .field-err{display:none;color:var(--pdf);font-size:12.5px;font-weight:600;margin-top:7px;line-height:1.35;}
   .field.bad .field-err{display:block;animation:fade .2s ease;}
   .field.bad .field-err::before{content:'\26A0  ';}
+  .pay-filters{display:flex;gap:10px;margin:14px 0 10px;flex-wrap:wrap;}
+  .pay-filters .pf{flex:1;min-width:120px;}
+  .pay-filters label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600;}
+  .pay-filters select{width:100%;padding:10px 11px;border:1px solid var(--line-2);border-radius:var(--radius-xs);background:var(--field);font-size:14px;font-family:var(--body);}
+  .pay-actions{display:flex;gap:10px;margin-bottom:12px;}
+  .pay-actions .btn{flex:1;padding:11px;font-size:14px;color:#fff;border:none;}
+  #payPdfBtn{background:var(--pdf);} #payXlsBtn{background:#1f8f4e;}
+  .pay-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:10px;background:#fff;}
+  table.pay{border-collapse:collapse;font-size:12px;white-space:nowrap;min-width:100%;}
+  table.pay th,table.pay td{border:1px solid var(--line);padding:6px 9px;text-align:left;}
+  table.pay thead .grp th{background:var(--navy);color:#fff;font-weight:700;text-align:center;font-size:11px;}
+  table.pay thead .cols th{background:var(--field);color:var(--ink);font-weight:700;}
+  table.pay td{font-family:var(--mono);color:var(--ink);}
+  table.pay tr.tot{background:#fff7e8;font-weight:700;}
+  table.pay tr.tot td{color:var(--amber-deep);}
+  .pay-empty{padding:22px;text-align:center;color:var(--muted);font-size:14px;}
 </style>
 </head>
 <body>
@@ -373,12 +389,15 @@
           <p class="screen-sub" id="welcomeLine" style="margin:0">Welcome</p></div>
         <button class="iconbtn" style="background:var(--field);border-color:var(--line);color:var(--muted)" onclick="doLogout()" data-i18n="signOut">Sign Out</button>
       </div>
-      <div class="stats" style="margin-top:14px">
-        <div class="stat"><div class="v" id="stEntries">0</div><div class="k" data-i18n="statEntries">Entries</div></div>
-        <div class="stat"><div class="v" id="stHours">0h</div><div class="k" data-i18n="statHours">Hours</div></div>
-        <div class="stat"><div class="v" id="stKm">0</div><div class="k" data-i18n="statKm">Total KM</div></div>
+      <div class="pay-filters">
+        <div class="pf"><label data-i18n="filterMonth">Month</label><select id="payMonth" onchange="onPayMonth()"></select></div>
+        <div class="pf"><label data-i18n="filterWeek">Week</label><select id="payWeek" onchange="renderPayable()"></select></div>
       </div>
-      <div id="entryList"></div>
+      <div class="pay-actions">
+        <button class="btn" id="payPdfBtn" onclick="exportPay('pdf')"><span data-i18n="pdf">Download PDF</span></button>
+        <button class="btn" id="payXlsBtn" onclick="exportPay('excel')"><span data-i18n="excel">Download Excel</span></button>
+      </div>
+      <div class="pay-wrap" id="payTable"></div>
       <div class="actions"><button class="btn btn-primary" onclick="showScreen('entry')" data-i18n="newEntry">+ New Entry</button></div>
     </div>
 
@@ -507,6 +526,7 @@ const REG_CODE='FLEET2026';
 let accounts={};
 let entries=[];
 let currentUser=null, authMode='login', lastEntry=null, submitting=false;
+let payGroups=[], payHeaders=[], payRows=[], payIdx=[];
 const FLEET={
   truck:['00-BJG-8','45-BSN-9','82-BJB-6','54-BVB-5','36-BNK-8','66-BLR-6','79-BLF-4','BB-980-D','47-BVJ-6','12-BSV-2','44-BGV-8','45-BSB-4','BB-656-F','33-BZZ-7','31-BGT-7','BB-386-P','BD-410-F'],
   trailer:['OK-60-KP','OK-30-RY','OJ-94-BT','OJ-27-DG','OK-29-NR','OL-47-JS','OG-49-RY','OJ-97-KJ','OK-12-FZ','OK-86-LV'],
@@ -562,8 +582,18 @@ async function hashPw(pw){
   return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
 }
 async function openHours(){
-  if(API_URL){ try{ const r=await jsonp({action:'hours',name:currentUser.name}); if(r&&r.entries) entries=r.entries; }catch(e){} }
-  renderHours(); showScreen('hours');
+  const d=T[lang];
+  document.getElementById('welcomeLine').textContent=d.welcome+', '+currentUser.name;
+  document.getElementById('payTable').innerHTML='<div class="pay-empty">'+(d.loading||'Loading…')+'</div>';
+  showScreen('hours');
+  payGroups=[]; payHeaders=[]; payRows=[]; payIdx=[];
+  try{
+    const r=await jsonp({action:'payable',name:currentUser.name});
+    if(r && r.error==='notab'){ document.getElementById('payTable').innerHTML='<div class="pay-empty">'+d.noTab+'</div>';
+      document.getElementById('payMonth').innerHTML=''; document.getElementById('payWeek').innerHTML=''; return; }
+    if(r && r.rows){ payGroups=r.groups||[]; payHeaders=r.headers||[]; payRows=r.rows||[]; }
+  }catch(e){}
+  indexPay(); buildPayFilters(); renderPayable();
 }
 
 function buildLangList(){
@@ -804,22 +834,82 @@ async function doAuth(){
 }
 function doLogout(){ currentUser=null; document.getElementById('accountLabel').textContent=T[lang].accountBtn; showScreen('entry'); resetForm(); }
 
-function renderHours(){
-  const d=T[lang]; document.getElementById('welcomeLine').textContent=d.welcome+', '+currentUser.name;
-  const mine=entries.filter(e=>e.driver.toLowerCase()===currentUser.name.toLowerCase())
-                    .sort((a,b)=>(b.submittedAt||'').localeCompare(a.submittedAt||''));
-  const totMins=mine.reduce((s,e)=>s+e.totalMins,0); const totKm=mine.reduce((s,e)=>s+(+e.totalKm||0),0);
-  document.getElementById('stEntries').textContent=mine.length;
-  document.getElementById('stHours').textContent=Math.floor(totMins/60)+'h';
-  document.getElementById('stKm').textContent=totKm;
-  const list=document.getElementById('entryList');
-  if(!mine.length){ list.innerHTML='<div class="empty">'+d.noEntries+'</div>'; return; }
-  list.innerHTML=mine.map(e=>{
-    const date=new Date(e.startTime).toLocaleDateString();
-    const hrs=Math.floor(e.totalMins/60)+'h '+(e.totalMins%60)+'m';
-    return '<div class="entry"><div class="row1"><span class="cli">'+esc(e.client)+'</span><span class="date">'+date+'</span></div>'+
-      '<div class="row2"><span>'+d.totalKm+': <b>'+e.totalKm+' km</b></span><span>'+d.totalTime+': <b>'+hrs+'</b></span><span>'+esc(e.truck)+'</span></div></div>';
-  }).join('');
+function indexPay(){
+  var lastM=''; payIdx=[];
+  payRows.forEach(function(cells){
+    var m=(cells[0]||'').trim(); if(m) lastM=m;
+    payIdx.push({cells:cells, month:lastM, date:(cells[1]||'').trim()});
+  });
+}
+function isoWeek(s){
+  var m=/^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(s||''); if(!m) return 0;
+  var dt=new Date(+m[3], +m[2]-1, +m[1]);
+  var t=new Date(dt.valueOf()); t.setDate(t.getDate()+3-((t.getDay()+6)%7));
+  var w1=new Date(t.getFullYear(),0,4);
+  return 1+Math.round(((t-w1)/86400000-3+((w1.getDay()+6)%7))/7);
+}
+function buildPayFilters(){
+  var months=[]; payIdx.forEach(function(x){ if(x.month && months.indexOf(x.month)<0) months.push(x.month); });
+  var msel=document.getElementById('payMonth'); msel.innerHTML='';
+  months.forEach(function(m){ var o=document.createElement('option'); o.value=m; o.textContent=m; msel.appendChild(o); });
+  if(months.length) msel.value=months[months.length-1];
+  buildWeekFilter();
+}
+function buildWeekFilter(){
+  const d=T[lang]; var month=document.getElementById('payMonth').value;
+  var weeks=[]; payIdx.forEach(function(x){ if(x.month===month){ var w=isoWeek(x.date); if(w && weeks.indexOf(w)<0) weeks.push(w); } });
+  weeks.sort(function(a,b){return a-b;});
+  var wsel=document.getElementById('payWeek'); wsel.innerHTML='';
+  var all=document.createElement('option'); all.value=''; all.textContent=d.allWeeks; wsel.appendChild(all);
+  weeks.forEach(function(w){ var o=document.createElement('option'); o.value=String(w); o.textContent=(d.week||'Week')+' '+w; wsel.appendChild(o); });
+}
+function onPayMonth(){ buildWeekFilter(); renderPayable(); }
+function filteredPay(){
+  var month=document.getElementById('payMonth').value; var week=document.getElementById('payWeek').value;
+  return payIdx.filter(function(x){ if(x.month!==month) return false; if(week){ return String(isoWeek(x.date))===week; } return true; });
+}
+function renderPayable(){
+  const d=T[lang]; var box=document.getElementById('payTable');
+  if(!payHeaders.length){ box.innerHTML='<div class="pay-empty">'+d.noPayable+'</div>'; return; }
+  var rows=filteredPay();
+  if(!rows.length){ box.innerHTML='<div class="pay-empty">'+d.noPayable+'</div>'; return; }
+  var html='<table class="pay"><thead>';
+  if(payGroups.length && payGroups.join('').trim()){
+    html+='<tr class="grp">'; var i=0;
+    while(i<payHeaders.length){ var lab=(payGroups[i]||'').trim(); var span=1; var j=i+1;
+      while(j<payHeaders.length && !(payGroups[j]||'').trim()){ span++; j++; }
+      html+='<th colspan="'+span+'">'+esc(lab)+'</th>'; i=j; }
+    html+='</tr>';
+  }
+  html+='<tr class="cols">'; payHeaders.forEach(function(hh){ html+='<th>'+esc(hh)+'</th>'; }); html+='</tr></thead><tbody>';
+  rows.forEach(function(x){ var isTot=!x.date; html+='<tr'+(isTot?' class="tot"':'')+'>'; x.cells.forEach(function(c){ html+='<td>'+esc(c)+'</td>'; }); html+='</tr>'; });
+  html+='</tbody></table>'; box.innerHTML=html;
+}
+function exportPay(kind){
+  const d=T[lang]; var rows=filteredPay(); if(!rows.length) return;
+  var month=document.getElementById('payMonth').value; var week=document.getElementById('payWeek').value;
+  var title=currentUser.name+' \u2014 '+month+(week?(' \u00b7 '+(d.week||'Week')+' '+week):'');
+  var fnbase='payable-'+currentUser.name.replace(/\s+/g,'_')+'-'+month.replace(/\s+/g,'_')+(week?('-W'+week):'');
+  if(kind==='excel'){
+    var aoa=[]; if(payGroups.join('').trim()) aoa.push(payGroups); aoa.push(payHeaders); rows.forEach(function(x){ aoa.push(x.cells); });
+    var ws=XLSX.utils.aoa_to_sheet(aoa); var wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Payable');
+    var out=XLSX.write(wb,{bookType:'xlsx',type:'array'}); var b64=XLSX.write(wb,{bookType:'xlsx',type:'base64'});
+    var mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    saveFile(new Blob([out],{type:mime}), 'data:'+mime+';base64,'+b64, fnbase+'.xlsx', mime);
+  } else {
+    var jsPDF=window.jspdf.jsPDF; var doc=new jsPDF({orientation:'landscape'});
+    doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.text(title,8,12);
+    var startX=8, usable=289-startX, colW=usable/payHeaders.length, y=20;
+    doc.setFontSize(6.5); doc.setFont('helvetica','bold');
+    payHeaders.forEach(function(hh,ci){ doc.text(doc.splitTextToSize(String(hh),colW-1),startX+ci*colW,y); });
+    y+=7; doc.setFont('helvetica','normal');
+    rows.forEach(function(xr){
+      if(!xr.date) doc.setFont('helvetica','bold'); else doc.setFont('helvetica','normal');
+      xr.cells.forEach(function(c,ci){ doc.text(String(c||'').slice(0,16),startX+ci*colW,y); });
+      y+=5; if(y>200){ doc.addPage(); y=15; }
+    });
+    saveFile(doc.output('blob'), doc.output('datauristring').replace(/filename=[^;]+;/,''), fnbase+'.pdf','application/pdf');
+  }
 }
 
 /* ===== START: auto-detect the phone's language ===== */
@@ -843,6 +933,13 @@ function renderHours(){
  pl:{hoursPrompt:'Wpisz swój kod kierowcy, aby zobaczyć godziny.',viewHours:'Zobacz moje godziny',hCodeHours:'Ten sam kod, którego używasz do wysyłania.'},
  pt:{hoursPrompt:'Introduza o seu código para ver as suas horas.',viewHours:'Ver as minhas horas',hCodeHours:'O mesmo código pessoal que usa para submeter.'},
  ro:{hoursPrompt:'Introduceți codul de șofer pentru a vedea orele.',viewHours:'Vezi orele mele',hCodeHours:'Același cod pe care îl folosiți la trimitere.'}
+};for(var L in ov){if(T[L])for(var k in ov[L])T[L][k]=ov[L][k];}})();
+(function(){var ov={
+ en:{filterMonth:'Month',filterWeek:'Week',allWeeks:'All weeks',week:'Week',loading:'Loading\u2026',noPayable:'No hours found for this selection.',noTab:'No payable sheet found for your code. Please contact the office.'},
+ nl:{filterMonth:'Maand',filterWeek:'Week',allWeeks:'Alle weken',week:'Week',loading:'Laden\u2026',noPayable:'Geen uren gevonden voor deze selectie.',noTab:'Geen urenblad gevonden voor jouw code. Neem contact op met kantoor.'},
+ pl:{filterMonth:'Miesi\u0105c',filterWeek:'Tydzie\u0144',allWeeks:'Wszystkie tygodnie',week:'Tydz.',loading:'\u0141adowanie\u2026',noPayable:'Brak godzin dla tego wyboru.',noTab:'Nie znaleziono arkusza dla Twojego kodu. Skontaktuj si\u0119 z biurem.'},
+ pt:{filterMonth:'M\u00eas',filterWeek:'Semana',allWeeks:'Todas as semanas',week:'Sem.',loading:'A carregar\u2026',noPayable:'Sem horas para esta sele\u00e7\u00e3o.',noTab:'Folha n\u00e3o encontrada para o seu c\u00f3digo. Contacte o escrit\u00f3rio.'},
+ ro:{filterMonth:'Luna',filterWeek:'S\u0103pt\u0103m\u00e2na',allWeeks:'Toate s\u0103pt\u0103m\u00e2nile',week:'S\u0103pt.',loading:'Se \u00eencarc\u0103\u2026',noPayable:'Nicio or\u0103 pentru aceast\u0103 selec\u021bie.',noTab:'Nu s-a g\u0103sit nicio fi\u0219\u0103 pentru codul dvs. Contacta\u021bi biroul.'}
 };for(var L in ov){if(T[L])for(var k in ov[L])T[L][k]=ov[L][k];}})();
 function detectLang(){
   var cands=(navigator.languages&&navigator.languages.length)?navigator.languages:[navigator.language||navigator.userLanguage||'en'];
