@@ -354,22 +354,13 @@
     <!-- SCREEN 3: AUTH -->
     <div class="card screen" id="screen-auth">
       <h2 class="screen-title" data-i18n="checkHours">Check My Hours</h2>
-      <p class="screen-sub" data-i18n="loginPrompt">Sign in to see the hours you've submitted.</p>
-      <div class="tabs">
-        <div class="tab active" id="tab-login" onclick="setAuthMode('login')" data-i18n="loginBtn">Log In</div>
-        <div class="tab" id="tab-register" onclick="setAuthMode('register')" data-i18n="registerBtn">Register</div>
-      </div>
+      <p class="screen-sub" data-i18n="hoursPrompt">Enter your driver code to see your submitted hours.</p>
       <div class="errbar" id="authErr"></div>
-      <div class="field"><label data-i18n="name">Driver Name</label>
-        <input id="auName" data-i18n-ph="driverPh" placeholder="Enter driver name"></div>
-      <div class="field"><label data-i18n="password">Password</label>
-        <input id="auPw" type="password" data-i18n-ph="passwordPh" placeholder="Enter password"></div>
-      <div class="field" id="f-confirm" style="display:none"><label data-i18n="confirmPw">Confirm Password</label>
-        <input id="auPw2" type="password" data-i18n-ph="passwordPh" placeholder="Enter password"></div>
-      <div class="field" id="f-code" style="display:none"><label data-i18n="regCode">Registration Code</label>
-        <div class="help" data-i18n="hCode">Ask your manager for this code.</div>
-        <input id="auCode" data-i18n-ph="regCodePh" placeholder="Code from your manager"></div>
-      <button class="btn btn-primary" id="authSubmit" onclick="doAuth()" data-i18n="loginBtn">Log In</button>
+      <div class="field"><label data-i18n="driverCode">Driver code</label>
+        <div class="help" data-i18n="hCodeHours">The same personal code you use to submit your trips.</div>
+        <input id="auCode" data-i18n-ph="driverCodePh" placeholder="e.g. 4821" autocomplete="off"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();doAuth();}"></div>
+      <button class="btn btn-primary" id="authSubmit" onclick="doAuth()" data-i18n="viewHours">View my hours</button>
       <div class="actions" style="margin-top:12px">
         <button class="btn btn-ghost" onclick="showScreen('entry')" data-i18n="back">Back to form</button>
       </div>
@@ -592,7 +583,7 @@ function setLang(code){
   document.getElementById('langLabel').textContent=(LANGS.find(l=>l[0]===code)||['','English'])[1];
   if(currentUser) document.getElementById('accountLabel').textContent=currentUser.name.split(' ')[0];
   if(typeof refreshPickers==='function') refreshPickers();
-  setAuthMode(authMode); calc();
+  calc();
 }
 
 function showScreen(name){
@@ -795,38 +786,21 @@ function shareExcel(){ if(!lastEntry)return; const data=[['Field','Value'],...ro
   var fn='driver-work-entry-'+(lastEntry.ref||'')+'.xlsx';
   saveFile(new Blob([out],{type:mime}), 'data:'+mime+';base64,'+b64, fn, mime); }
 
-function setAuthMode(mode){ authMode=mode; const d=T[lang];
-  document.getElementById('tab-login').classList.toggle('active',mode==='login');
-  document.getElementById('tab-register').classList.toggle('active',mode==='register');
-  document.getElementById('f-confirm').style.display=mode==='register'?'block':'none';
-  document.getElementById('f-code').style.display=mode==='register'?'block':'none';
-  document.getElementById('authSubmit').textContent=mode==='register'?d.registerBtn:d.loginBtn;
-}
 function authFail(key){ const e=document.getElementById('authErr'); e.textContent=T[lang][key]; e.classList.add('show'); }
 async function doAuth(){
-  const e=document.getElementById('authErr'); e.classList.remove('show');
-  const name=document.getElementById('auName').value.trim(); const pw=document.getElementById('auPw').value;
-  if(!name||!pw) return authFail('errFill');
-  if(API_URL){
-    try{
-      const pwHash=await hashPw(pw); let res;
-      if(authMode==='register'){
-        if(pw.length<4) return authFail('errShort');
-        if(pw!==document.getElementById('auPw2').value) return authFail('errMismatch');
-        res=await jsonp({action:'register',name:name,pwHash:pwHash,code:document.getElementById('auCode').value.trim()});
-        if(res.error==='code') return authFail('errCode');
-        if(res.error==='exists') return authFail('errExists');
-        if(!res.ok) return authFail('errLogin');
-      } else {
-        res=await jsonp({action:'login',name:name,pwHash:pwHash});
-        if(!res.ok) return authFail('errLogin');
-      }
-      currentUser={name:res.name||name};
-    }catch(err){ return authFail('errLogin'); }
-  } else { return authFail('errLogin'); }
-  document.getElementById('auPw').value=''; document.getElementById('auPw2').value='';
-  document.getElementById('accountLabel').textContent=currentUser.name.split(' ')[0];
-  openHours();
+  const er=document.getElementById('authErr'); er.classList.remove('show');
+  const code=document.getElementById('auCode').value.trim();
+  if(!code) return authFail('fillThis');
+  const btn=document.getElementById('authSubmit'); var lbl=btn.textContent;
+  btn.disabled=true; btn.textContent=T[lang].submitting;
+  try{
+    const drv=await lookupDriver(code);
+    if(!drv.found){ er.textContent=T[lang].errDriverCode.replace('{c}',DRIVER_CONTACT); er.classList.add('show'); return; }
+    currentUser={name:drv.name, id:drv.id};
+    document.getElementById('accountLabel').textContent=drv.name.split(' ')[0];
+    await openHours();
+  }catch(e){ er.textContent=T[lang].errDriverCode.replace('{c}',DRIVER_CONTACT); er.classList.add('show'); }
+  finally{ btn.disabled=false; btn.textContent=lbl; }
 }
 function doLogout(){ currentUser=null; document.getElementById('accountLabel').textContent=T[lang].accountBtn; showScreen('entry'); resetForm(); }
 
@@ -862,6 +836,13 @@ function renderHours(){
  pl:{submitting:'Wysyłanie, proszę czekać…'},
  pt:{submitting:'A submeter, aguarde…'},
  ro:{submitting:'Se trimite, așteptați…'}
+};for(var L in ov){if(T[L])for(var k in ov[L])T[L][k]=ov[L][k];}})();
+(function(){var ov={
+ en:{hoursPrompt:'Enter your driver code to see your submitted hours.',viewHours:'View my hours',hCodeHours:'The same personal code you use to submit your trips.'},
+ nl:{hoursPrompt:'Voer je chauffeurscode in om je uren te zien.',viewHours:'Bekijk mijn uren',hCodeHours:'Dezelfde persoonlijke code die je gebruikt om te verzenden.'},
+ pl:{hoursPrompt:'Wpisz swój kod kierowcy, aby zobaczyć godziny.',viewHours:'Zobacz moje godziny',hCodeHours:'Ten sam kod, którego używasz do wysyłania.'},
+ pt:{hoursPrompt:'Introduza o seu código para ver as suas horas.',viewHours:'Ver as minhas horas',hCodeHours:'O mesmo código pessoal que usa para submeter.'},
+ ro:{hoursPrompt:'Introduceți codul de șofer pentru a vedea orele.',viewHours:'Vezi orele mele',hCodeHours:'Același cod pe care îl folosiți la trimitere.'}
 };for(var L in ov){if(T[L])for(var k in ov[L])T[L][k]=ov[L][k];}})();
 function detectLang(){
   var cands=(navigator.languages&&navigator.languages.length)?navigator.languages:[navigator.language||navigator.userLanguage||'en'];
