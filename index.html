@@ -217,7 +217,7 @@
   .pay-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:10px;background:#fff;}
   table.pay{border-collapse:collapse;font-size:12px;white-space:nowrap;min-width:100%;}
   table.pay th,table.pay td{border:1px solid var(--line);padding:6px 9px;text-align:left;}
-  table.pay thead .grp th{background:var(--navy);color:#fff;font-weight:700;text-align:center;font-size:11px;}
+  table.pay thead .grp th{background:#eef2f6;color:#34465a;font-weight:700;text-align:center;font-size:11px;}
   table.pay thead .cols th{background:var(--field);color:var(--ink);font-weight:700;}
   table.pay td{font-family:var(--mono);color:var(--ink);}
   table.pay tr.tot{font-weight:700;}
@@ -231,6 +231,9 @@
   table.pay td.g-rep{background:#fdf8e1;}
   table.pay td.g-ver{background:#f3f6f9;}
   table.pay td.g-pay{background:#ebf7ed;}
+  table.pay thead .grp th.g-inf{background:#dfe6ee;color:#34465a;}
+  table.pay thead .cols th.g-inf{background:#eef2f6;}
+  table.pay td.g-inf{background:#f7f9fb;}
   .pay-empty{padding:22px;text-align:center;color:var(--muted);font-size:14px;}
 </style>
 </head>
@@ -905,15 +908,24 @@ function setPayMode(m){
   if(m==='month'){ renderPayable(); }
   else { document.getElementById('payTable').innerHTML='<div class="pay-empty">'+(T[lang].pickRange||'Pick a date range and tap Search.')+'</div>'; }
 }
+var PAY_TAIL=6;
+function trimTail(rows){
+  var lastC=-1;
+  for(var i=0;i<rows.length;i++){ if((((rows[i].cells||[]).join(''))||'').trim()!=='') lastC=i; }
+  if(lastC<0) return rows.slice(0, Math.min(rows.length, PAY_TAIL));
+  return rows.slice(0, Math.min(rows.length, lastC+1+PAY_TAIL));
+}
 function filteredPay(){
+  var out;
   if(payMode==='custom'){
     var from=isoNum(document.getElementById('payFrom').value); var to=isoNum(document.getElementById('payTo').value);
-    if(!from&&!to) return payIdx.filter(function(x){ return !!x.date; });
-    var lo=from||0, hi=to||99999999;
-    return payIdx.filter(function(x){ var nx=dmyNum(x.date); return nx&&nx>=lo&&nx<=hi; });
+    if(!from&&!to){ out=payIdx.filter(function(x){ return !!x.date; }); }
+    else { var lo=from||0, hi=to||99999999; out=payIdx.filter(function(x){ var nx=dmyNum(x.date); return nx&&nx>=lo&&nx<=hi; }); }
+    return trimTail(out);
   }
   var month=document.getElementById('payMonth').value; var week=document.getElementById('payWeek').value;
-  return payIdx.filter(function(x){ if(x.month!==month) return false; if(week){ return String(isoWeek(x.date))===week; } return true; });
+  out=payIdx.filter(function(x){ if(x.month!==month) return false; if(week){ return String(isoWeek(x.date))===week; } return true; });
+  return trimTail(out);
 }
 function payKey(lab){ lab=(lab||'').toLowerCase(); if(lab.indexOf('report')>=0)return'rep'; if(lab.indexOf('verif')>=0)return'ver'; if(lab.indexOf('payab')>=0)return'pay'; return''; }
 function renderPayable(){
@@ -927,7 +939,7 @@ function renderPayable(){
     html+='<tr class="grp">'; var i=0;
     while(i<payHeaders.length){ var lab=(payGroups[i]||'').trim(); var span=1; var j=i+1;
       while(j<payHeaders.length && !(payGroups[j]||'').trim()){ span++; j++; }
-      var gk=payKey(lab); html+='<th colspan="'+span+'"'+(gk?' class="g-'+gk+'"':'')+'>'+esc(lab)+'</th>'; i=j; }
+      var gk=payKey(lab)||'inf'; html+='<th colspan="'+span+'" class="g-'+gk+'">'+esc(lab)+'</th>'; i=j; }
     html+='</tr>';
   }
   html+='<tr class="cols">'; payHeaders.forEach(function(hh,ci){ html+='<th'+(colKey[ci]?' class="g-'+colKey[ci]+'"':'')+'>'+esc(hh)+'</th>'; }); html+='</tr></thead><tbody>';
@@ -935,7 +947,7 @@ function renderPayable(){
   html+='</tbody></table>'; box.innerHTML=html;
 }
 function payColKeys(){
-  var keys=[], cur='';
+  var keys=[], cur='inf';
   for(var c=0;c<payHeaders.length;c++){
     var g=(payGroups[c]||'').trim(); if(g) cur=payKey(g);
     var hh=(payHeaders[c]||'').toLowerCase();
@@ -947,6 +959,7 @@ var PAYRGB={
   rep:{grp:[239,225,164],col:[248,240,205],cell:[253,248,225]},
   ver:{grp:[214,221,230],col:[231,235,240],cell:[243,246,249]},
   pay:{grp:[187,226,193],col:[214,238,218],cell:[235,247,237]},
+  inf:{grp:[223,230,238],col:[238,242,246],cell:[247,249,251]},
   '':{grp:[16,42,67],col:[237,240,243],cell:[255,255,255]}
 };
 function exportPay(kind){
@@ -967,7 +980,7 @@ function exportPay(kind){
   function drawHead(){
     var gh=6,i=0;
     while(i<n){ var lab=(payGroups[i]||'').trim(); var span=1,j=i+1; while(j<n && !(payGroups[j]||'').trim()){span++;j++;}
-      var gk=payKey(lab); var x=mL+i*cw, w=span*cw; cell(x,w,y,gh,PAYRGB[gk].grp);
+      var gk=payKey(lab)||'inf'; var x=mL+i*cw, w=span*cw; cell(x,w,y,gh,PAYRGB[gk].grp);
       if(lab){ doc.setFont('helvetica','bold'); doc.setFontSize(6.5);
         if(gk){doc.setTextColor(58,46,15);}else{doc.setTextColor(255,255,255);}
         var tw=doc.getTextWidth(lab); doc.text(lab, x+w/2-tw/2, y+4); }
@@ -1008,7 +1021,7 @@ function exportPayExcel(title,fnbase,rows,colKey){
   var hasG=payGroups.join('').trim();
   if(hasG){ var i=0;
     while(i<n){ var lab=(payGroups[i]||'').trim(); var span=1,j=i+1; while(j<n && !(payGroups[j]||'').trim()){span++;j++;}
-      var gk=payKey(lab); if(span>1) ws.mergeCells(2,i+1,2,j); var gc=ws.getCell(2,i+1);
+      var gk=payKey(lab)||'inf'; if(span>1) ws.mergeCells(2,i+1,2,j); var gc=ws.getCell(2,i+1);
       gc.value=lab; gc.fill=fill(PAYRGB[gk].grp); gc.font={bold:true,size:10,color:{argb:gk?'FF3A2E0F':'FFFFFFFF'}}; gc.alignment={horizontal:'center',vertical:'middle'};
       for(var k=i;k<j;k++){ ws.getCell(2,k+1).border=bAll; } i=j; }
     ws.getRow(2).height=18;
