@@ -11,6 +11,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 
 <style>
   *{box-sizing:border-box;}
@@ -198,6 +199,10 @@
   .pay-filters .pf{flex:1;min-width:120px;}
   .pay-filters label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600;}
   .pay-filters select{width:100%;padding:10px 11px;border:1px solid var(--line-2);border-radius:var(--radius-xs);background:var(--field);font-size:14px;font-family:var(--body);}
+  .pay-filters input[type=date]{width:100%;padding:9px 11px;border:1px solid var(--line-2);border-radius:var(--radius-xs);background:var(--field);font-size:14px;font-family:var(--body);color:var(--ink);}
+  .pay-filters .pf-clear{display:flex;align-items:flex-end;}
+  .pay-filters .rangeClear{width:100%;padding:10px 11px;border:1px solid var(--line-2);border-radius:var(--radius-xs);background:#fff;color:var(--navy);font-weight:600;font-size:13px;cursor:pointer;}
+  .pay-filters .rangeClear:active{background:var(--field);}
   .pay-actions{display:flex;gap:10px;margin-bottom:12px;}
   .pay-actions .btn{flex:1;padding:11px;font-size:14px;color:#fff;border:none;}
   #payPdfBtn{background:var(--pdf);} #payXlsBtn{background:#1f8f4e;}
@@ -403,6 +408,9 @@
       <div class="pay-filters">
         <div class="pf"><label data-i18n="filterMonth">Month</label><select id="payMonth" onchange="onPayMonth()"></select></div>
         <div class="pf"><label data-i18n="filterWeek">Week</label><select id="payWeek" onchange="renderPayable()"></select></div>
+        <div class="pf"><label data-i18n="filterFrom">From</label><input type="date" id="payFrom" onchange="renderPayable()"></div>
+        <div class="pf"><label data-i18n="filterTo">To</label><input type="date" id="payTo" onchange="renderPayable()"></div>
+        <div class="pf pf-clear"><button type="button" class="rangeClear" onclick="clearRange()" data-i18n="clearRange">Clear dates</button></div>
       </div>
       <div class="pay-actions">
         <button class="btn" id="payPdfBtn" onclick="exportPay('pdf')"><span data-i18n="pdf">Download PDF</span></button>
@@ -874,7 +882,12 @@ function buildWeekFilter(){
   weeks.forEach(function(w){ var o=document.createElement('option'); o.value=String(w); o.textContent=(d.week||'Week')+' '+w; wsel.appendChild(o); });
 }
 function onPayMonth(){ buildWeekFilter(); renderPayable(); }
+function dmyNum(s){ var m=/^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(s||''); if(!m)return 0; return (+m[3])*10000+(+m[2])*100+(+m[1]); }
+function isoNum(s){ var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(s||''); if(!m)return 0; return (+m[1])*10000+(+m[2])*100+(+m[3]); }
+function clearRange(){ document.getElementById('payFrom').value=''; document.getElementById('payTo').value=''; renderPayable(); }
 function filteredPay(){
+  var from=isoNum(document.getElementById('payFrom').value); var to=isoNum(document.getElementById('payTo').value);
+  if(from||to){ var lo=from||0, hi=to||99999999; return payIdx.filter(function(x){ var nx=dmyNum(x.date); return nx&&nx>=lo&&nx<=hi; }); }
   var month=document.getElementById('payMonth').value; var week=document.getElementById('payWeek').value;
   return payIdx.filter(function(x){ if(x.month!==month) return false; if(week){ return String(isoWeek(x.date))===week; } return true; });
 }
@@ -884,7 +897,7 @@ function renderPayable(){
   if(!payHeaders.length){ box.innerHTML='<div class="pay-empty">'+d.noPayable+'</div>'; return; }
   var rows=filteredPay();
   if(!rows.length){ box.innerHTML='<div class="pay-empty">'+d.noPayable+'</div>'; return; }
-  var colKey=[], cur=''; for(var c=0;c<payHeaders.length;c++){ var g=(payGroups[c]||'').trim(); if(g) cur=payKey(g); colKey.push(cur); }
+  var colKey=payColKeys();
   var html='<table class="pay"><thead>';
   if(payGroups.length && payGroups.join('').trim()){
     html+='<tr class="grp">'; var i=0;
@@ -897,31 +910,103 @@ function renderPayable(){
   rows.forEach(function(x){ var isTot=!x.date; html+='<tr'+(isTot?' class="tot"':'')+'>'; x.cells.forEach(function(c,ci){ html+='<td'+(colKey[ci]?' class="g-'+colKey[ci]+'"':'')+'>'+esc(c)+'</td>'; }); html+='</tr>'; });
   html+='</tbody></table>'; box.innerHTML=html;
 }
+function payColKeys(){
+  var keys=[], cur='';
+  for(var c=0;c<payHeaders.length;c++){
+    var g=(payGroups[c]||'').trim(); if(g) cur=payKey(g);
+    var hh=(payHeaders[c]||'').toLowerCase();
+    keys.push(hh.indexOf('note')>=0 ? '' : cur);
+  }
+  return keys;
+}
+var PAYRGB={
+  rep:{grp:[239,225,164],col:[248,240,205],cell:[253,248,225]},
+  ver:{grp:[214,221,230],col:[231,235,240],cell:[243,246,249]},
+  pay:{grp:[187,226,193],col:[214,238,218],cell:[235,247,237]},
+  '':{grp:[16,42,67],col:[237,240,243],cell:[255,255,255]}
+};
 function exportPay(kind){
   const d=T[lang]; var rows=filteredPay(); if(!rows.length) return;
   var month=document.getElementById('payMonth').value; var week=document.getElementById('payWeek').value;
-  var title=currentUser.name+' \u2014 '+month+(week?(' \u00b7 '+(d.week||'Week')+' '+week):'');
-  var fnbase='payable-'+currentUser.name.replace(/\s+/g,'_')+'-'+month.replace(/\s+/g,'_')+(week?('-W'+week):'');
-  if(kind==='excel'){
-    var aoa=[]; if(payGroups.join('').trim()) aoa.push(payGroups); aoa.push(payHeaders); rows.forEach(function(x){ aoa.push(x.cells); });
-    var ws=XLSX.utils.aoa_to_sheet(aoa); var wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Payable');
-    var out=XLSX.write(wb,{bookType:'xlsx',type:'array'}); var b64=XLSX.write(wb,{bookType:'xlsx',type:'base64'});
-    var mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-    saveFile(new Blob([out],{type:mime}), 'data:'+mime+';base64,'+b64, fnbase+'.xlsx', mime);
-  } else {
-    var jsPDF=window.jspdf.jsPDF; var doc=new jsPDF({orientation:'landscape'});
-    doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.text(title,8,12);
-    var startX=8, usable=289-startX, colW=usable/payHeaders.length, y=20;
-    doc.setFontSize(6.5); doc.setFont('helvetica','bold');
-    payHeaders.forEach(function(hh,ci){ doc.text(doc.splitTextToSize(String(hh),colW-1),startX+ci*colW,y); });
-    y+=7; doc.setFont('helvetica','normal');
-    rows.forEach(function(xr){
-      if(!xr.date) doc.setFont('helvetica','bold'); else doc.setFont('helvetica','normal');
-      xr.cells.forEach(function(c,ci){ doc.text(String(c||'').slice(0,16),startX+ci*colW,y); });
-      y+=5; if(y>200){ doc.addPage(); y=15; }
-    });
-    saveFile(doc.output('blob'), doc.output('datauristring').replace(/filename=[^;]+;/,''), fnbase+'.pdf','application/pdf');
+  var from=document.getElementById('payFrom').value, to=document.getElementById('payTo').value;
+  var scope=(from||to)?((from||'\u2026')+' \u2192 '+(to||'\u2026')):(month+(week?(' \u00b7 '+(d.week||'Week')+' '+week):''));
+  var title=currentUser.name+' \u2014 '+scope;
+  var fnbase='payable-'+currentUser.name.replace(/\s+/g,'_')+'-'+scope.replace(/[^\w-]+/g,'_');
+  var colKey=payColKeys();
+  if(kind==='excel'){ exportPayExcel(title,fnbase,rows,colKey); return; }
+  /* ---- coloured PDF grid ---- */
+  var jsPDF=window.jspdf.jsPDF; var doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  var pageW=297,pageH=210,mL=8,mR=8; var n=payHeaders.length; var cw=(pageW-mL-mR)/n;
+  doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(16,42,67); doc.text(title,mL,10);
+  function cell(x,w,y,h,rgb){ doc.setFillColor(rgb[0],rgb[1],rgb[2]); doc.setDrawColor(203,211,220); doc.rect(x,y,w,h,'FD'); }
+  var y=14;
+  function drawHead(){
+    var gh=6,i=0;
+    while(i<n){ var lab=(payGroups[i]||'').trim(); var span=1,j=i+1; while(j<n && !(payGroups[j]||'').trim()){span++;j++;}
+      var gk=payKey(lab); var x=mL+i*cw, w=span*cw; cell(x,w,y,gh,PAYRGB[gk].grp);
+      if(lab){ doc.setFont('helvetica','bold'); doc.setFontSize(6.5);
+        if(gk){doc.setTextColor(58,46,15);}else{doc.setTextColor(255,255,255);}
+        var tw=doc.getTextWidth(lab); doc.text(lab, x+w/2-tw/2, y+4); }
+      i=j; }
+    y+=gh;
+    var ch=6; doc.setFont('helvetica','bold'); doc.setFontSize(5.4); doc.setTextColor(27,39,51);
+    payHeaders.forEach(function(hh,ci){ var x=mL+ci*cw; cell(x,cw,y,ch,PAYRGB[colKey[ci]].col);
+      var t=doc.splitTextToSize(String(hh),cw-1.4); doc.text(t[0]||'',x+0.8,y+2.4); if(t[1])doc.text(t[1],x+0.8,y+4.6); });
+    y+=ch;
   }
+  drawHead();
+  var rh=5.2;
+  rows.forEach(function(xr){
+    if(y>pageH-8){ doc.addPage(); y=12; drawHead(); }
+    var isTot=!xr.date;
+    xr.cells.forEach(function(c,ci){ var rgb=isTot?[255,247,232]:PAYRGB[colKey[ci]].cell; var x=mL+ci*cw; cell(x,cw,y,rh,rgb);
+      doc.setFont('helvetica',isTot?'bold':'normal'); doc.setFontSize(5.6); doc.setTextColor(32,38,46);
+      var s=doc.splitTextToSize(String(c||''),cw-1.4)[0]||''; doc.text(s,x+0.8,y+3.4); });
+    y+=rh;
+  });
+  saveFile(doc.output('blob'), doc.output('datauristring').replace(/filename=[^;]+;/,''), fnbase+'.pdf','application/pdf');
+}
+function exportPayExcel(title,fnbase,rows,colKey){
+  var mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  if(typeof ExcelJS==='undefined'){
+    var aoa=[]; if(payGroups.join('').trim()) aoa.push(payGroups); aoa.push(payHeaders); rows.forEach(function(x){ aoa.push(x.cells); });
+    var ws0=XLSX.utils.aoa_to_sheet(aoa); var wb0=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb0,ws0,'Payable');
+    var out=XLSX.write(wb0,{bookType:'xlsx',type:'array'}); var b640=XLSX.write(wb0,{bookType:'xlsx',type:'base64'});
+    saveFile(new Blob([out],{type:mime}),'data:'+mime+';base64,'+b640,fnbase+'.xlsx',mime); return;
+  }
+  var n=payHeaders.length;
+  function argb(rgb){ function hx(v){return ('0'+v.toString(16)).slice(-2).toUpperCase();} return 'FF'+hx(rgb[0])+hx(rgb[1])+hx(rgb[2]); }
+  function fill(rgb){ return {type:'pattern',pattern:'solid',fgColor:{argb:argb(rgb)}}; }
+  var thin={style:'thin',color:{argb:'FFCBD3DC'}};
+  var bAll={top:thin,left:thin,bottom:thin,right:thin};
+  var wb=new ExcelJS.Workbook(); var ws=wb.addWorksheet('Payable',{views:[{state:'frozen',ySplit:3}]});
+  ws.mergeCells(1,1,1,n); var tc=ws.getCell(1,1); tc.value=title; tc.font={bold:true,size:13,color:{argb:'FF102A43'}}; tc.alignment={vertical:'middle'}; ws.getRow(1).height=20;
+  var hasG=payGroups.join('').trim();
+  if(hasG){ var i=0;
+    while(i<n){ var lab=(payGroups[i]||'').trim(); var span=1,j=i+1; while(j<n && !(payGroups[j]||'').trim()){span++;j++;}
+      var gk=payKey(lab); if(span>1) ws.mergeCells(2,i+1,2,j); var gc=ws.getCell(2,i+1);
+      gc.value=lab; gc.fill=fill(PAYRGB[gk].grp); gc.font={bold:true,size:10,color:{argb:gk?'FF3A2E0F':'FFFFFFFF'}}; gc.alignment={horizontal:'center',vertical:'middle'};
+      for(var k=i;k<j;k++){ ws.getCell(2,k+1).border=bAll; } i=j; }
+    ws.getRow(2).height=18;
+  }
+  payHeaders.forEach(function(hh,ci){ var c=ws.getCell(3,ci+1); c.value=hh; c.fill=fill(PAYRGB[colKey[ci]].col);
+    c.font={bold:true,size:9,color:{argb:'FF1B2733'}}; c.alignment={horizontal:'center',vertical:'middle',wrapText:true}; c.border=bAll; });
+  ws.getRow(3).height=28;
+  var r=4;
+  rows.forEach(function(xr){ var isTot=!xr.date;
+    xr.cells.forEach(function(v,ci){ var c=ws.getCell(r,ci+1); c.value=v;
+      c.fill=fill(isTot?[255,247,232]:PAYRGB[colKey[ci]].cell);
+      c.font={bold:isTot,size:9,color:{argb:'FF20262E'}}; c.alignment={vertical:'middle'};
+      c.border=isTot?{top:{style:'medium',color:{argb:'FF8A93A0'}},left:thin,right:thin,bottom:thin}:bAll; });
+    r++; });
+  for(var ci=0;ci<n;ci++){ var hh=(payHeaders[ci]||'').toLowerCase(); var w=12;
+    if(hh.indexOf('note')>=0)w=26; else if(ci<2)w=14; else if(hh.indexOf('client')>=0||hh.indexOf('truck')>=0||hh.indexOf('licen')>=0)w=16;
+    ws.getColumn(ci+1).width=w; }
+  wb.xlsx.writeBuffer().then(function(buf){
+    var blob=new Blob([buf],{type:mime});
+    var bytes=new Uint8Array(buf), bin=''; for(var i=0;i<bytes.length;i++) bin+=String.fromCharCode(bytes[i]);
+    saveFile(blob,'data:'+mime+';base64,'+btoa(bin), fnbase+'.xlsx', mime);
+  });
 }
 
 /* ===== START: auto-detect the phone's language ===== */
@@ -947,11 +1032,11 @@ function exportPay(kind){
  ro:{hoursPrompt:'Introduceți codul de șofer pentru a vedea orele.',viewHours:'Vezi orele mele',hCodeHours:'Același cod pe care îl folosiți la trimitere.'}
 };for(var L in ov){if(T[L])for(var k in ov[L])T[L][k]=ov[L][k];}})();
 (function(){var ov={
- en:{filterMonth:'Month',filterWeek:'Week',allWeeks:'All weeks',week:'Week',loading:'Loading\u2026',noPayable:'No hours found for this selection.',noTab:'No payable sheet found for your code. Please contact the office.'},
- nl:{filterMonth:'Maand',filterWeek:'Week',allWeeks:'Alle weken',week:'Week',loading:'Laden\u2026',noPayable:'Geen uren gevonden voor deze selectie.',noTab:'Geen urenblad gevonden voor jouw code. Neem contact op met kantoor.'},
- pl:{filterMonth:'Miesi\u0105c',filterWeek:'Tydzie\u0144',allWeeks:'Wszystkie tygodnie',week:'Tydz.',loading:'\u0141adowanie\u2026',noPayable:'Brak godzin dla tego wyboru.',noTab:'Nie znaleziono arkusza dla Twojego kodu. Skontaktuj si\u0119 z biurem.'},
- pt:{filterMonth:'M\u00eas',filterWeek:'Semana',allWeeks:'Todas as semanas',week:'Sem.',loading:'A carregar\u2026',noPayable:'Sem horas para esta sele\u00e7\u00e3o.',noTab:'Folha n\u00e3o encontrada para o seu c\u00f3digo. Contacte o escrit\u00f3rio.'},
- ro:{filterMonth:'Luna',filterWeek:'S\u0103pt\u0103m\u00e2na',allWeeks:'Toate s\u0103pt\u0103m\u00e2nile',week:'S\u0103pt.',loading:'Se \u00eencarc\u0103\u2026',noPayable:'Nicio or\u0103 pentru aceast\u0103 selec\u021bie.',noTab:'Nu s-a g\u0103sit nicio fi\u0219\u0103 pentru codul dvs. Contacta\u021bi biroul.'}
+ en:{filterMonth:'Month',filterWeek:'Week',filterFrom:'From',filterTo:'To',clearRange:'Clear dates',allWeeks:'All weeks',week:'Week',loading:'Loading\u2026',noPayable:'No hours found for this selection.',noTab:'No payable sheet found for your code. Please contact the office.'},
+ nl:{filterMonth:'Maand',filterWeek:'Week',filterFrom:'Vanaf',filterTo:'Tot',clearRange:'Wis datums',allWeeks:'Alle weken',week:'Week',loading:'Laden\u2026',noPayable:'Geen uren gevonden voor deze selectie.',noTab:'Geen urenblad gevonden voor jouw code. Neem contact op met kantoor.'},
+ pl:{filterMonth:'Miesi\u0105c',filterWeek:'Tydzie\u0144',filterFrom:'Od',filterTo:'Do',clearRange:'Wyczy\u015b\u0107 daty',allWeeks:'Wszystkie tygodnie',week:'Tydz.',loading:'\u0141adowanie\u2026',noPayable:'Brak godzin dla tego wyboru.',noTab:'Nie znaleziono arkusza dla Twojego kodu. Skontaktuj si\u0119 z biurem.'},
+ pt:{filterMonth:'M\u00eas',filterWeek:'Semana',filterFrom:'De',filterTo:'At\u00e9',clearRange:'Limpar datas',allWeeks:'Todas as semanas',week:'Sem.',loading:'A carregar\u2026',noPayable:'Sem horas para esta sele\u00e7\u00e3o.',noTab:'Folha n\u00e3o encontrada para o seu c\u00f3digo. Contacte o escrit\u00f3rio.'},
+ ro:{filterMonth:'Luna',filterWeek:'S\u0103pt\u0103m\u00e2na',filterFrom:'De la',filterTo:'P\u00e2n\u0103 la',clearRange:'\u0218terge datele',allWeeks:'Toate s\u0103pt\u0103m\u00e2nile',week:'S\u0103pt.',loading:'Se \u00eencarc\u0103\u2026',noPayable:'Nicio or\u0103 pentru aceast\u0103 selec\u021bie.',noTab:'Nu s-a g\u0103sit nicio fi\u0219\u0103 pentru codul dvs. Contacta\u021bi biroul.'}
 };for(var L in ov){if(T[L])for(var k in ov[L])T[L][k]=ov[L][k];}})();
 (function(){var ov={
  en:{tripNo:'Trip number',hTripNo:'Enter the trip number. Several? Separate with commas.',tripNoPh:'e.g. 1024 or 1024, 1025'},
