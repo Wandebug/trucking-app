@@ -621,12 +621,19 @@ async function openHours(){
   document.getElementById('payTable').innerHTML='<div class="pay-empty">'+(d.loading||'Loading…')+'</div>';
   showScreen('hours');
   payGroups=[]; payHeaders=[]; payRows=[]; payIdx=[];
-  try{
-    const r=await jsonp({action:'payable',name:currentUser.name});
-    if(r && r.error==='notab'){ document.getElementById('payTable').innerHTML='<div class="pay-empty">'+d.noTab+'</div>';
-      document.getElementById('payMonth').innerHTML=''; document.getElementById('payWeek').innerHTML=''; return; }
-    if(r && r.rows){ payGroups=r.groups||[]; payHeaders=r.headers||[]; payRows=r.rows||[]; }
-  }catch(e){}
+  var r=null;
+  for(var attempt=0; attempt<3; attempt++){
+    try{ r=await jsonp({action:'payable',name:currentUser.name}); }catch(e){ r=null; }
+    if(r && (r.rows || r.error)) break;
+    await new Promise(function(res){ setTimeout(res, 500); });
+  }
+  if(r && r.error==='notab'){ document.getElementById('payTable').innerHTML='<div class="pay-empty">'+d.noTab+'</div>';
+    document.getElementById('payMonth').innerHTML=''; document.getElementById('payWeek').innerHTML=''; return; }
+  if(r && r.rows){ payGroups=r.groups||[]; payHeaders=r.headers||[]; payRows=r.rows||[]; }
+  if(!payHeaders.length && !(r && r.error)){
+    document.getElementById('payTable').innerHTML='<div class="pay-empty">'+(d.loadFail||'Could not load your hours — please tap My Hours again.')+'</div>';
+    return;
+  }
   indexPay(); buildPayFilters(); renderPayable();
 }
 
@@ -910,10 +917,10 @@ function setPayMode(m){
 }
 var PAY_TAIL=6;
 function trimTail(rows){
-  var lastC=-1;
-  for(var i=0;i<rows.length;i++){ if((((rows[i].cells||[]).join(''))||'').trim()!=='') lastC=i; }
-  if(lastC<0) return rows.slice(0, Math.min(rows.length, PAY_TAIL));
-  return rows.slice(0, Math.min(rows.length, lastC+1+PAY_TAIL));
+  return rows.filter(function(x){
+    if(x.date) return true;
+    return (((x.cells||[]).join(''))||'').trim()!=='';
+  });
 }
 function filteredPay(){
   var out;
@@ -938,7 +945,7 @@ function renderPayable(){
   if(payGroups.length && payGroups.join('').trim()){
     html+='<tr class="grp">'; var i=0;
     while(i<payHeaders.length){ var lab=(payGroups[i]||'').trim(); var span=1; var j=i+1;
-      while(j<payHeaders.length && !(payGroups[j]||'').trim()){ span++; j++; }
+      while(j<payHeaders.length && !(payGroups[j]||'').trim() && (payHeaders[j]||'').toLowerCase().indexOf('note')<0){ span++; j++; }
       var gk=payKey(lab)||'inf'; html+='<th colspan="'+span+'" class="g-'+gk+'">'+esc(lab)+'</th>'; i=j; }
     html+='</tr>';
   }
@@ -979,7 +986,7 @@ function exportPay(kind){
   var y=14;
   function drawHead(){
     var gh=6,i=0;
-    while(i<n){ var lab=(payGroups[i]||'').trim(); var span=1,j=i+1; while(j<n && !(payGroups[j]||'').trim()){span++;j++;}
+    while(i<n){ var lab=(payGroups[i]||'').trim(); var span=1,j=i+1; while(j<n && !(payGroups[j]||'').trim() && (payHeaders[j]||'').toLowerCase().indexOf('note')<0){span++;j++;}
       var gk=payKey(lab)||'inf'; var x=mL+i*cw, w=span*cw; cell(x,w,y,gh,PAYRGB[gk].grp);
       if(lab){ doc.setFont('helvetica','bold'); doc.setFontSize(6.5);
         if(gk){doc.setTextColor(58,46,15);}else{doc.setTextColor(255,255,255);}
@@ -1020,7 +1027,7 @@ function exportPayExcel(title,fnbase,rows,colKey){
   ws.mergeCells(1,1,1,n); var tc=ws.getCell(1,1); tc.value=title; tc.font={bold:true,size:13,color:{argb:'FF102A43'}}; tc.alignment={vertical:'middle'}; ws.getRow(1).height=20;
   var hasG=payGroups.join('').trim();
   if(hasG){ var i=0;
-    while(i<n){ var lab=(payGroups[i]||'').trim(); var span=1,j=i+1; while(j<n && !(payGroups[j]||'').trim()){span++;j++;}
+    while(i<n){ var lab=(payGroups[i]||'').trim(); var span=1,j=i+1; while(j<n && !(payGroups[j]||'').trim() && (payHeaders[j]||'').toLowerCase().indexOf('note')<0){span++;j++;}
       var gk=payKey(lab)||'inf'; if(span>1) ws.mergeCells(2,i+1,2,j); var gc=ws.getCell(2,i+1);
       gc.value=lab; gc.fill=fill(PAYRGB[gk].grp); gc.font={bold:true,size:10,color:{argb:gk?'FF3A2E0F':'FFFFFFFF'}}; gc.alignment={horizontal:'center',vertical:'middle'};
       for(var k=i;k<j;k++){ ws.getCell(2,k+1).border=bAll; } i=j; }
@@ -1069,11 +1076,11 @@ function exportPayExcel(title,fnbase,rows,colKey){
  ro:{hoursPrompt:'Introduceți codul de șofer pentru a vedea orele.',viewHours:'Vezi orele mele',hCodeHours:'Același cod pe care îl folosiți la trimitere.'}
 };for(var L in ov){if(T[L])for(var k in ov[L])T[L][k]=ov[L][k];}})();
 (function(){var ov={
- en:{filterMonth:'Month',filterWeek:'Week',filterFrom:'From',filterTo:'To',clearRange:'Clear dates',tabMonth:'By month',tabCustom:'Custom',searchBtn:'Search',pickRange:'Pick a date range and tap Search.',allWeeks:'All weeks',week:'Week',loading:'Loading\u2026',noPayable:'No hours found for this selection.',noTab:'No payable sheet found for your code. Please contact the office.'},
- nl:{filterMonth:'Maand',filterWeek:'Week',filterFrom:'Vanaf',filterTo:'Tot',clearRange:'Wis datums',tabMonth:'Per maand',tabCustom:'Aangepast',searchBtn:'Zoeken',pickRange:'Kies een periode en tik op Zoeken.',allWeeks:'Alle weken',week:'Week',loading:'Laden\u2026',noPayable:'Geen uren gevonden voor deze selectie.',noTab:'Geen urenblad gevonden voor jouw code. Neem contact op met kantoor.'},
- pl:{filterMonth:'Miesi\u0105c',filterWeek:'Tydzie\u0144',filterFrom:'Od',filterTo:'Do',clearRange:'Wyczy\u015b\u0107 daty',tabMonth:'Wed\u0142ug miesi\u0105ca',tabCustom:'W\u0142asny',searchBtn:'Szukaj',pickRange:'Wybierz zakres dat i naci\u015bnij Szukaj.',allWeeks:'Wszystkie tygodnie',week:'Tydz.',loading:'\u0141adowanie\u2026',noPayable:'Brak godzin dla tego wyboru.',noTab:'Nie znaleziono arkusza dla Twojego kodu. Skontaktuj si\u0119 z biurem.'},
- pt:{filterMonth:'M\u00eas',filterWeek:'Semana',filterFrom:'De',filterTo:'At\u00e9',clearRange:'Limpar datas',tabMonth:'Por m\u00eas',tabCustom:'Personalizado',searchBtn:'Pesquisar',pickRange:'Escolha um intervalo de datas e toque em Pesquisar.',allWeeks:'Todas as semanas',week:'Sem.',loading:'A carregar\u2026',noPayable:'Sem horas para esta sele\u00e7\u00e3o.',noTab:'Folha n\u00e3o encontrada para o seu c\u00f3digo. Contacte o escrit\u00f3rio.'},
- ro:{filterMonth:'Luna',filterWeek:'S\u0103pt\u0103m\u00e2na',filterFrom:'De la',filterTo:'P\u00e2n\u0103 la',clearRange:'\u0218terge datele',tabMonth:'Pe lun\u0103',tabCustom:'Personalizat',searchBtn:'Caut\u0103',pickRange:'Alege un interval de date \u0219i apas\u0103 Caut\u0103.',allWeeks:'Toate s\u0103pt\u0103m\u00e2nile',week:'S\u0103pt.',loading:'Se \u00eencarc\u0103\u2026',noPayable:'Nicio or\u0103 pentru aceast\u0103 selec\u021bie.',noTab:'Nu s-a g\u0103sit nicio fi\u0219\u0103 pentru codul dvs. Contacta\u021bi biroul.'}
+ en:{filterMonth:'Month',filterWeek:'Week',filterFrom:'From',filterTo:'To',clearRange:'Clear dates',tabMonth:'By month',tabCustom:'Custom',searchBtn:'Search',pickRange:'Pick a date range and tap Search.',loadFail:'Could not load your hours \u2014 please tap My Hours again.',allWeeks:'All weeks',week:'Week',loading:'Loading\u2026',noPayable:'No hours found for this selection.',noTab:'No payable sheet found for your code. Please contact the office.'},
+ nl:{filterMonth:'Maand',filterWeek:'Week',filterFrom:'Vanaf',filterTo:'Tot',clearRange:'Wis datums',tabMonth:'Per maand',tabCustom:'Aangepast',searchBtn:'Zoeken',pickRange:'Kies een periode en tik op Zoeken.',loadFail:'Kon je uren niet laden \u2014 tik opnieuw op Mijn uren.',allWeeks:'Alle weken',week:'Week',loading:'Laden\u2026',noPayable:'Geen uren gevonden voor deze selectie.',noTab:'Geen urenblad gevonden voor jouw code. Neem contact op met kantoor.'},
+ pl:{filterMonth:'Miesi\u0105c',filterWeek:'Tydzie\u0144',filterFrom:'Od',filterTo:'Do',clearRange:'Wyczy\u015b\u0107 daty',tabMonth:'Wed\u0142ug miesi\u0105ca',tabCustom:'W\u0142asny',searchBtn:'Szukaj',pickRange:'Wybierz zakres dat i naci\u015bnij Szukaj.',loadFail:'Nie uda\u0142o si\u0119 wczyta\u0107 godzin \u2014 dotknij ponownie Moje godziny.',allWeeks:'Wszystkie tygodnie',week:'Tydz.',loading:'\u0141adowanie\u2026',noPayable:'Brak godzin dla tego wyboru.',noTab:'Nie znaleziono arkusza dla Twojego kodu. Skontaktuj si\u0119 z biurem.'},
+ pt:{filterMonth:'M\u00eas',filterWeek:'Semana',filterFrom:'De',filterTo:'At\u00e9',clearRange:'Limpar datas',tabMonth:'Por m\u00eas',tabCustom:'Personalizado',searchBtn:'Pesquisar',pickRange:'Escolha um intervalo de datas e toque em Pesquisar.',loadFail:'N\u00e3o foi poss\u00edvel carregar as horas \u2014 toque novamente em Minhas horas.',allWeeks:'Todas as semanas',week:'Sem.',loading:'A carregar\u2026',noPayable:'Sem horas para esta sele\u00e7\u00e3o.',noTab:'Folha n\u00e3o encontrada para o seu c\u00f3digo. Contacte o escrit\u00f3rio.'},
+ ro:{filterMonth:'Luna',filterWeek:'S\u0103pt\u0103m\u00e2na',filterFrom:'De la',filterTo:'P\u00e2n\u0103 la',clearRange:'\u0218terge datele',tabMonth:'Pe lun\u0103',tabCustom:'Personalizat',searchBtn:'Caut\u0103',pickRange:'Alege un interval de date \u0219i apas\u0103 Caut\u0103.',loadFail:'Nu s-au putut \u00eenc\u0103rca orele \u2014 atinge din nou Orele mele.',allWeeks:'Toate s\u0103pt\u0103m\u00e2nile',week:'S\u0103pt.',loading:'Se \u00eencarc\u0103\u2026',noPayable:'Nicio or\u0103 pentru aceast\u0103 selec\u021bie.',noTab:'Nu s-a g\u0103sit nicio fi\u0219\u0103 pentru codul dvs. Contacta\u021bi biroul.'}
 };for(var L in ov){if(T[L])for(var k in ov[L])T[L][k]=ov[L][k];}})();
 (function(){var ov={
  en:{tripNo:'Trip number',hTripNo:'Enter the trip number. Several? Separate with commas.',tripNoPh:'e.g. 1024 or 1024, 1025'},
