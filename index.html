@@ -207,8 +207,17 @@
   table.pay thead .grp th{background:var(--navy);color:#fff;font-weight:700;text-align:center;font-size:11px;}
   table.pay thead .cols th{background:var(--field);color:var(--ink);font-weight:700;}
   table.pay td{font-family:var(--mono);color:var(--ink);}
-  table.pay tr.tot{background:#fff7e8;font-weight:700;}
-  table.pay tr.tot td{color:var(--amber-deep);}
+  table.pay tr.tot{font-weight:700;}
+  table.pay tr.tot td{border-top:2px solid #aeb8c3;}
+  table.pay thead .grp th.g-rep{background:#efe1a4;color:#6b5600;}
+  table.pay thead .grp th.g-ver{background:#d6dde6;color:#2b3a4c;}
+  table.pay thead .grp th.g-pay{background:#bbe2c1;color:#1d5b2a;}
+  table.pay thead .cols th.g-rep{background:#f8f0cd;}
+  table.pay thead .cols th.g-ver{background:#e7ebf0;}
+  table.pay thead .cols th.g-pay{background:#d6eeda;}
+  table.pay td.g-rep{background:#fdf8e1;}
+  table.pay td.g-ver{background:#f3f6f9;}
+  table.pay td.g-pay{background:#ebf7ed;}
   .pay-empty{padding:22px;text-align:center;color:var(--muted);font-size:14px;}
 </style>
 </head>
@@ -869,21 +878,23 @@ function filteredPay(){
   var month=document.getElementById('payMonth').value; var week=document.getElementById('payWeek').value;
   return payIdx.filter(function(x){ if(x.month!==month) return false; if(week){ return String(isoWeek(x.date))===week; } return true; });
 }
+function payKey(lab){ lab=(lab||'').toLowerCase(); if(lab.indexOf('report')>=0)return'rep'; if(lab.indexOf('verif')>=0)return'ver'; if(lab.indexOf('payab')>=0)return'pay'; return''; }
 function renderPayable(){
   const d=T[lang]; var box=document.getElementById('payTable');
   if(!payHeaders.length){ box.innerHTML='<div class="pay-empty">'+d.noPayable+'</div>'; return; }
   var rows=filteredPay();
   if(!rows.length){ box.innerHTML='<div class="pay-empty">'+d.noPayable+'</div>'; return; }
+  var colKey=[], cur=''; for(var c=0;c<payHeaders.length;c++){ var g=(payGroups[c]||'').trim(); if(g) cur=payKey(g); colKey.push(cur); }
   var html='<table class="pay"><thead>';
   if(payGroups.length && payGroups.join('').trim()){
     html+='<tr class="grp">'; var i=0;
     while(i<payHeaders.length){ var lab=(payGroups[i]||'').trim(); var span=1; var j=i+1;
       while(j<payHeaders.length && !(payGroups[j]||'').trim()){ span++; j++; }
-      html+='<th colspan="'+span+'">'+esc(lab)+'</th>'; i=j; }
+      var gk=payKey(lab); html+='<th colspan="'+span+'"'+(gk?' class="g-'+gk+'"':'')+'>'+esc(lab)+'</th>'; i=j; }
     html+='</tr>';
   }
-  html+='<tr class="cols">'; payHeaders.forEach(function(hh){ html+='<th>'+esc(hh)+'</th>'; }); html+='</tr></thead><tbody>';
-  rows.forEach(function(x){ var isTot=!x.date; html+='<tr'+(isTot?' class="tot"':'')+'>'; x.cells.forEach(function(c){ html+='<td>'+esc(c)+'</td>'; }); html+='</tr>'; });
+  html+='<tr class="cols">'; payHeaders.forEach(function(hh,ci){ html+='<th'+(colKey[ci]?' class="g-'+colKey[ci]+'"':'')+'>'+esc(hh)+'</th>'; }); html+='</tr></thead><tbody>';
+  rows.forEach(function(x){ var isTot=!x.date; html+='<tr'+(isTot?' class="tot"':'')+'>'; x.cells.forEach(function(c,ci){ html+='<td'+(colKey[ci]?' class="g-'+colKey[ci]+'"':'')+'>'+esc(c)+'</td>'; }); html+='</tr>'; });
   html+='</tbody></table>'; box.innerHTML=html;
 }
 function exportPay(kind){
