@@ -417,7 +417,7 @@ const T = {
  en:{title:'Driver Work Entry',sub:'Fill in your trip, then submit.',secInfo:'Driver & Client',secVehicle:'Vehicles',secTrip:'Trip Details',secTime:'Time',
    driver:'Driver',driverPh:'Enter driver name',client:'Client',clientPh:'Enter client name',truck:'Trucks',trailer:'Trailers',
    startKm:'Start KM',startKmPh:'Enter start km',endKm:'End KM',endKmPh:'Enter end km',remarks:'Remarks',remarksPh:'Enter remarks',
-   breakTime:'Break Time',hours:'hours',minutes:'minutes',startTime:'Start Time',endTime:'End Time',
+   breakTime:'Break Time',hours:'hours',minutes:'minutes',date:'Date',startTime:'Start Time',endTime:'End Time',
    hDriver:'Your full name.',hClient:'Write who you drove for. One report per client.',
    hTrucks:'Choose "Other", then type the truck\u2019s license plate. Add more if you used several.',
    hTrailers:'Choose "Other", then type the trailer\u2019s license plate. Add more if you used several.',
@@ -436,7 +436,7 @@ const T = {
  nl:{title:'Werkregistratie Chauffeur',sub:'Vul je rit in en verzend.',secInfo:'Chauffeur & Klant',secVehicle:'Voertuigen',secTrip:'Ritgegevens',secTime:'Tijd',
    driver:'Chauffeur',driverPh:'Voer chauffeursnaam in',client:'Klant',clientPh:'Voer klantnaam in',truck:'Vrachtwagens',trailer:'Opleggers',
    startKm:'Begin KM',startKmPh:'Voer begin km in',endKm:'Eind KM',endKmPh:'Voer eind km in',remarks:'Opmerkingen',remarksPh:'Voer opmerkingen in',
-   breakTime:'Pauzetijd',hours:'uren',minutes:'minuten',startTime:'Starttijd',endTime:'Eindtijd',
+   breakTime:'Pauzetijd',hours:'uren',minutes:'minuten',date:'Datum',startTime:'Starttijd',endTime:'Eindtijd',
    hDriver:'Je volledige naam.',hClient:'Kies voor wie je hebt gereden.',
    hTrucks:'Schrijf elke vrachtwagen die je reed. Waren het er meer? Schrijf ze allemaal, met een komma ertussen.',
    hTrailers:'Schrijf elke oplegger die je trok. Waren het er meer? Schrijf ze allemaal, met een komma ertussen.',
@@ -455,7 +455,7 @@ const T = {
  pl:{title:'Karta Pracy Kierowcy',sub:'Wypełnij trasę i wyślij.',secInfo:'Kierowca i Klient',secVehicle:'Pojazdy',secTrip:'Szczegóły trasy',secTime:'Czas',
    driver:'Kierowca',driverPh:'Wpisz imię kierowcy',client:'Klient',clientPh:'Wpisz nazwę klienta',truck:'Pojazdy',trailer:'Naczepy',
    startKm:'Początkowy KM',startKmPh:'Wpisz początkowy km',endKm:'Końcowy KM',endKmPh:'Wpisz końcowy km',remarks:'Uwagi',remarksPh:'Wpisz uwagi',
-   breakTime:'Czas przerwy',hours:'godz.',minutes:'min',startTime:'Czas rozpoczęcia',endTime:'Czas zakończenia',
+   breakTime:'Czas przerwy',hours:'godz.',minutes:'min',date:'Data',startTime:'Czas rozpoczęcia',endTime:'Czas zakończenia',
    hDriver:'Twoje imię i nazwisko.',hClient:'Wybierz, dla kogo jechałeś.',
    hTrucks:'Wpisz każdy pojazd, którym jechałeś. Jeśli było ich kilka, wpisz wszystkie, oddzielając przecinkiem.',
    hTrailers:'Wpisz każdą naczepę, którą ciągnąłeś. Jeśli było ich kilka, wpisz wszystkie, oddzielając przecinkiem.',
@@ -474,7 +474,7 @@ const T = {
  pt:{title:'Registo de Trabalho',sub:'Preencha a viagem e submeta.',secInfo:'Motorista e Cliente',secVehicle:'Veículos',secTrip:'Detalhes da Viagem',secTime:'Tempo',
    driver:'Motorista',driverPh:'Introduza o nome do motorista',client:'Cliente',clientPh:'Introduza o nome do cliente',truck:'Camiões',trailer:'Reboques',
    startKm:'KM Inicial',startKmPh:'Introduza o km inicial',endKm:'KM Final',endKmPh:'Introduza o km final',remarks:'Observações',remarksPh:'Introduza observações',
-   breakTime:'Tempo de Pausa',hours:'horas',minutes:'minutos',startTime:'Hora de Início',endTime:'Hora de Fim',
+   breakTime:'Tempo de Pausa',hours:'horas',minutes:'minutos',date:'Data',startTime:'Hora de Início',endTime:'Hora de Fim',
    hDriver:'O seu nome completo.',hClient:'Escolha para quem conduziu.',
    hTrucks:'Escreva cada camião que conduziu. Se foi mais de um, escreva todos, separados por vírgula.',
    hTrailers:'Escreva cada reboque que puxou. Se foi mais de um, escreva todos, separados por vírgula.',
@@ -493,7 +493,7 @@ const T = {
  ro:{title:'Fișă de Lucru Șofer',sub:'Completați cursa și trimiteți.',secInfo:'Șofer și Client',secVehicle:'Vehicule',secTrip:'Detalii Cursă',secTime:'Timp',
    driver:'Șofer',driverPh:'Introduceți numele șoferului',client:'Client',clientPh:'Introduceți numele clientului',truck:'Camioane',trailer:'Remorci',
    startKm:'KM Start',startKmPh:'Introduceți km de start',endKm:'KM Final',endKmPh:'Introduceți km final',remarks:'Observații',remarksPh:'Introduceți observații',
-   breakTime:'Timp de Pauză',hours:'ore',minutes:'minute',startTime:'Ora de Început',endTime:'Ora de Sfârșit',
+   breakTime:'Timp de Pauză',hours:'ore',minutes:'minute',date:'Data',startTime:'Ora de Început',endTime:'Ora de Sfârșit',
    hDriver:'Numele dvs. complet.',hClient:'Alege pentru cine ai condus.',
    hTrucks:'Scrie fiecare camion pe care l-ai condus. Dacă au fost mai multe, scrie-le pe toate, despărțite prin virgulă.',
    hTrailers:'Scrie fiecare remorcă pe care ai tras-o. Dacă au fost mai multe, scrie-le pe toate, despărțite prin virgulă.',
@@ -727,7 +727,8 @@ function finalizeEntry(){
   const brk=(parseInt(val('breakH'))||0)*60+(parseInt(val('breakM'))||0);
   const mins=Math.max(0,Math.round((new Date(val('endTime'))-new Date(val('startTime')))/60000-brk));
   const ref=val('tripNo').trim();
-  const entry={ ref, driver:pendingDriver.name, driverId:pendingDriver.id, client:val('client').trim(), truck:val('truck').trim(), trailer:val('trailer').trim(), firstStop:val('firstStop'), lastStop:val('lastStop'),
+  const tripDate=dmyFromLocal(val('startTime'));
+  const entry={ ref, date:tripDate, driver:pendingDriver.name, driverId:pendingDriver.id, client:val('client').trim(), truck:val('truck').trim(), trailer:val('trailer').trim(), firstStop:val('firstStop'), lastStop:val('lastStop'),
     startKm:val('startKm'), endKm:val('endKm'), totalKm:km, startTime:val('startTime'), endTime:val('endTime'),
     breakMins:brk, totalMins:mins, remarks:val('remarks'), submittedAt:new Date().toISOString().slice(0,16) };
   entries.push(entry); lastEntry=entry;
@@ -750,8 +751,9 @@ function resetForm(){
 function newEntry(){ showScreen('entry'); }
 
 function fmtDt(s){ return s? new Date(s).toLocaleString() : '-'; }
+function dmyFromLocal(s){ var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(s||''); return m? (m[3]+'/'+m[2]+'/'+m[1]) : ''; }
 function rowsFor(e){ const d=T[lang]; return [
-  [d.tripNo,e.ref],[d.driver,e.driver],[d.client,e.client],[d.truck,e.truck],[d.trailer,e.trailer],
+  [d.tripNo,e.ref],[d.date,e.date||'-'],[d.driver,e.driver],[d.client,e.client],[d.truck,e.truck],[d.trailer,e.trailer],
   [d.firstStop,e.firstStop],[d.lastStop,e.lastStop],
   [d.startKm,e.startKm],[d.endKm,e.endKm],[d.totalKm,e.totalKm+' km'],
   [d.startTime,fmtDt(e.startTime)],[d.endTime,fmtDt(e.endTime)],
