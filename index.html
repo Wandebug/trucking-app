@@ -185,7 +185,8 @@
   .dropdown.open .dd-panel{max-height:560px;padding-top:8px;}
   .field.bad .dd-trigger{border-color:var(--pdf);box-shadow:0 0 0 3px rgba(207,69,48,.14);}
   .dropdown .sel-bar{margin:10px 0 0;}
-  .confirm-name{font-family:var(--disp);font-weight:800;font-size:24px;text-align:center;color:var(--ink);background:var(--field);border:1px solid var(--line-2);border-radius:14px;padding:18px 12px;margin:6px 0 16px;letter-spacing:.3px;}
+  .confirm-name{font-family:var(--disp);font-weight:800;font-size:24px;text-align:center;color:var(--ink);background:var(--field);border:1px solid var(--line-2);border-radius:14px;padding:18px 12px;margin:6px 0 14px;letter-spacing:.3px;}
+  .confirm-warn{font-size:13px;line-height:1.45;color:#7a4a12;background:#fff6e6;border:1px solid #f3d39a;border-radius:12px;padding:11px 13px;margin:0 0 16px;}
   .confirm-btns{display:flex;gap:10px;}
   .confirm-btns button{flex:1;padding:14px;border-radius:12px;font-family:var(--body);font-weight:700;font-size:15px;cursor:pointer;border:1px solid transparent;transition:filter .15s,border-color .15s;}
   .btn-no{background:#fff;border-color:var(--line-2);color:var(--ink-soft);}
@@ -270,63 +271,18 @@
         <div class="help" data-i18n="hDriverCode">Type your personal code. Your name pops up so you know it worked.</div>
         <input id="driver" data-i18n-ph="driverCodePh" placeholder="e.g. 4821" autocomplete="off"></div>
       <div class="field" id="f-client"><label class="req" data-i18n="client">Client</label>
-        <div class="help" data-i18n="hClient">Pick who you drove for.</div>
-        <div class="dropdown" id="clientDD">
-          <button type="button" class="dd-trigger" onclick="toggleDD('client')">
-            <span class="dd-label" id="clientDDlabel" data-i18n="ddClient">Select client…</span>
-            <span class="dd-chev" aria-hidden="true">▾</span>
-          </button>
-          <div class="dd-panel">
-            <input class="picker-search" id="clientSearch" data-i18n-ph="searchClient" placeholder="Search client…" oninput="filterList('client')">
-            <div class="checklist" id="clientChecklist"></div>
-            <div class="otherbox" id="clientOther" style="display:none">
-              <span class="ol" data-i18n="instrClient">Type the client name:</span>
-              <input id="clientOtherInput" data-i18n-ph="phClient" placeholder="e.g. ACME Logistics" oninput="onOther('client')">
-            </div>
-          </div>
-          <div class="sel-bar" id="clientSel"></div>
-        </div>
-      </div>
+        <div class="help" data-i18n="hClient">Write who you drove for. If you drove for more than one client, send each client as a separate report.</div>
+        <input id="client" placeholder="e.g. PostNL" autocomplete="off"></div>
 
       <div class="section-title" data-i18n="secVehicle">Vehicles</div>
 
       <div class="field" id="f-truck"><label class="req" data-i18n="trucks">Trucks</label>
-        <div class="help" data-i18n="hTrucks">Tick the truck you drove. Not there? Tap "Other" to add it.</div>
-        <div class="dropdown" id="truckDD">
-          <button type="button" class="dd-trigger" onclick="toggleDD('truck')">
-            <span class="dd-label" id="truckDDlabel" data-i18n="ddTruck">Select trucks…</span>
-            <span class="dd-chev" aria-hidden="true">▾</span>
-          </button>
-          <div class="dd-panel">
-            <input class="picker-search" id="truckSearch" data-i18n-ph="searchPh" placeholder="Search plate…" oninput="filterList('truck')">
-            <div class="checklist" id="truckChecklist"></div>
-            <div class="otherbox" id="truckOther" style="display:none">
-              <span class="ol" data-i18n="plateInstr">Type the plate:</span>
-              <input id="truckOtherInput" data-i18n-ph="platePh" placeholder="e.g. AB-123-C" oninput="onOther('truck')">
-            </div>
-          </div>
-          <div class="sel-bar" id="truckSel"></div>
-        </div>
-      </div>
+        <div class="help" data-i18n="hTrucks">Write every truck you drove. If it was more than one, write them all with a comma between.</div>
+        <input id="truck" placeholder="e.g. 44-BGV-8, 12-BSV-2" autocomplete="off"></div>
 
       <div class="field" id="f-trailer"><label class="req" data-i18n="trailers">Trailers</label>
-        <div class="help" data-i18n="hTrailers">Tick the trailer you pulled. Not there? Tap "Other" to add it.</div>
-        <div class="dropdown" id="trailerDD">
-          <button type="button" class="dd-trigger" onclick="toggleDD('trailer')">
-            <span class="dd-label" id="trailerDDlabel" data-i18n="ddTrailer">Select trailers…</span>
-            <span class="dd-chev" aria-hidden="true">▾</span>
-          </button>
-          <div class="dd-panel">
-            <input class="picker-search" id="trailerSearch" data-i18n-ph="searchPh" placeholder="Search plate…" oninput="filterList('trailer')">
-            <div class="checklist" id="trailerChecklist"></div>
-            <div class="otherbox" id="trailerOther" style="display:none">
-              <span class="ol" data-i18n="plateInstr">Type the plate:</span>
-              <input id="trailerOtherInput" data-i18n-ph="platePh" placeholder="e.g. AB-123-C" oninput="onOther('trailer')">
-            </div>
-          </div>
-          <div class="sel-bar" id="trailerSel"></div>
-        </div>
-      </div>
+        <div class="help" data-i18n="hTrailers">Write every trailer you pulled. If it was more than one, write them all with a comma between.</div>
+        <input id="trailer" placeholder="e.g. OK-60-KP, OJ-94-BT" autocomplete="off"></div>
 
       <div class="section-title" data-i18n="secTrip">Trip Details</div>
       <div class="field" id="f-tripNo"><label class="req" data-i18n="tripNo">Trip number</label>
@@ -361,7 +317,7 @@
 
       <div class="section-title" data-i18n="remarks">Remarks</div>
       <div class="field"><label data-i18n="remarks">Remarks</label>
-        <div class="help" data-i18n="hRemarks">Anything worth noting? Optional — a delay, waiting time, and so on.</div>
+        <div class="help" data-i18n="hRemarks">Anything worth noting? It is optional. For example a delay or waiting time.</div>
         <textarea id="remarks" data-i18n-ph="remarksPh" placeholder="Enter remarks"></textarea></div>
 
       <div class="totals">
@@ -446,10 +402,11 @@
   <div class="overlay" id="confirmOverlay">
     <div class="sheet">
       <h3 data-i18n="confirmTitle">Is this you?</h3>
-      <p class="note" data-i18n="confirmSub">Check your name below before we save the entry.</p>
-      <div class="confirm-name" id="confirmName">—</div>
+      <p class="note" data-i18n="confirmSub">Check the name below is yours.</p>
+      <div class="confirm-name" id="confirmName">…</div>
+      <div class="confirm-warn" data-i18n="confirmWarn">Make sure everything you filled in is correct before you send. This report goes to the office and counts for your hours, so wrong details cause problems later.</div>
       <div class="confirm-btns">
-        <button type="button" class="btn-no" onclick="confirmNo()" data-i18n="no">No — check code</button>
+        <button type="button" class="btn-no" onclick="confirmNo()" data-i18n="no">No, check code</button>
         <button type="button" class="btn-yes" onclick="finalizeEntry()" data-i18n="yes">Yes, that's me</button>
       </div>
     </div>
@@ -461,14 +418,14 @@ const T = {
    driver:'Driver',driverPh:'Enter driver name',client:'Client',clientPh:'Enter client name',truck:'Trucks',trailer:'Trailers',
    startKm:'Start KM',startKmPh:'Enter start km',endKm:'End KM',endKmPh:'Enter end km',remarks:'Remarks',remarksPh:'Enter remarks',
    breakTime:'Break Time',hours:'hours',minutes:'minutes',startTime:'Start Time',endTime:'End Time',
-   hDriver:'Your full name.',hClient:'Pick who you drove for.',
+   hDriver:'Your full name.',hClient:'Write who you drove for. One report per client.',
    hTrucks:'Choose "Other", then type the truck\u2019s license plate. Add more if you used several.',
    hTrailers:'Choose "Other", then type the trailer\u2019s license plate. Add more if you used several.',
-   optAdd:'Select to add…',optOther:'Other — enter license plate',platePh:'e.g. ABC-1234',plateInstr:'Enter the license plate used:',addBtn:'Add',
+   optAdd:'Select to add…',optOther:'Other, enter license plate',platePh:'e.g. ABC-1234',plateInstr:'Enter the license plate used:',addBtn:'Add',
    hStartKm:'The km on your dashboard when you set off.',hEndKm:'The km on your dashboard when you parked up.',hBreak:'How long you stopped for breaks in total.',
-   hStartT:'What time you set off.',hEndT:'What time you finished.',hRemarks:'Anything worth noting? Optional — a delay, waiting time, and so on.',hCode:'Ask your manager for this code.',
+   hStartT:'What time you set off.',hEndT:'What time you finished.',hRemarks:'Anything worth noting? It is optional. For example a delay or waiting time.',hCode:'Ask your manager for this code.',
    totalKm:'Total KM',totalTime:'Total Time',submit:'Submit',reqNote:'Fields marked * are required.',
-   errFill:'Please fill in all the highlighted fields, then submit.',errTruck:'Please add at least one truck.',errTrailer:'Please add at least one trailer.',errKm:'End KM must be higher than Start KM. Check both numbers and fix the highlighted field.',errTime:'End Time must be after Start Time. Please correct the highlighted time.',
+   errFill:'Please fill in all the highlighted fields, then submit.',errTruck:'Please write the truck you drove.',errTrailer:'Please write the trailer you pulled.',errKm:'End KM must be higher than Start KM. Check both numbers and fix the highlighted field.',errTime:'End Time must be after Start Time. Please correct the highlighted time.',
    thanks:'Thanks for submitting!',refLabel:'Reference',chooseShare:'Please choose one of these methods to share in your work group:',newEntry:'+ New Entry',
    whatsapp:'Send via WhatsApp',pdf:'Download PDF',excel:'Download Excel',report:'Driver Work Report',
    chooseLang:'Choose your language',langNote:"The app opens automatically in your phone's language.",accountBtn:'My Hours',checkHours:'Check My Hours',loginPrompt:"Sign in to see the hours you've submitted.",
@@ -481,13 +438,13 @@ const T = {
    startKm:'Begin KM',startKmPh:'Voer begin km in',endKm:'Eind KM',endKmPh:'Voer eind km in',remarks:'Opmerkingen',remarksPh:'Voer opmerkingen in',
    breakTime:'Pauzetijd',hours:'uren',minutes:'minuten',startTime:'Starttijd',endTime:'Eindtijd',
    hDriver:'Je volledige naam.',hClient:'Kies voor wie je hebt gereden.',
-   hTrucks:'Vink de vrachtwagen aan die je reed. Staat hij er niet bij? Tik op "Overig" om hem toe te voegen.',
-   hTrailers:'Vink de oplegger aan die je trok. Staat hij er niet bij? Tik op "Overig" om hem toe te voegen.',
-   optAdd:'Selecteer om toe te voegen…',optOther:'Overig — kenteken invoeren',platePh:'bijv. ABC-1234',plateInstr:'Voer het gebruikte kenteken in:',addBtn:'Toevoegen',
+   hTrucks:'Schrijf elke vrachtwagen die je reed. Waren het er meer? Schrijf ze allemaal, met een komma ertussen.',
+   hTrailers:'Schrijf elke oplegger die je trok. Waren het er meer? Schrijf ze allemaal, met een komma ertussen.',
+   optAdd:'Selecteer om toe te voegen…',optOther:'Overig, kenteken invoeren',platePh:'bijv. ABC-1234',plateInstr:'Voer het gebruikte kenteken in:',addBtn:'Toevoegen',
    hStartKm:'De km op je dashboard toen je vertrok.',hEndKm:'De km op je dashboard toen je parkeerde.',hBreak:'Hoelang je in totaal pauze had.',
-   hStartT:'Hoe laat je vertrok.',hEndT:'Hoe laat je klaar was.',hRemarks:'Iets te melden? Optioneel — een vertraging, wachttijd, enzovoort.',hCode:'Vraag je manager om deze code.',
+   hStartT:'Hoe laat je vertrok.',hEndT:'Hoe laat je klaar was.',hRemarks:'Iets te melden? Optioneel. Bijvoorbeeld een vertraging of wachttijd.',hCode:'Vraag je manager om deze code.',
    totalKm:'Totaal KM',totalTime:'Totale Tijd',submit:'Verzenden',reqNote:'Velden met * zijn verplicht.',
-   errFill:'Vul de gemarkeerde velden in en verzend daarna.',errTruck:'Voeg ten minste één vrachtwagen toe.',errTrailer:'Voeg ten minste één oplegger toe.',errKm:'Eind KM moet hoger zijn dan Begin KM. Controleer beide getallen en corrigeer het gemarkeerde veld.',errTime:'Eindtijd moet na Starttijd liggen. Corrigeer de gemarkeerde tijd.',
+   errFill:'Vul de gemarkeerde velden in en verzend daarna.',errTruck:'Schrijf de vrachtwagen die je reed.',errTrailer:'Schrijf de oplegger die je trok.',errKm:'Eind KM moet hoger zijn dan Begin KM. Controleer beide getallen en corrigeer het gemarkeerde veld.',errTime:'Eindtijd moet na Starttijd liggen. Corrigeer de gemarkeerde tijd.',
    thanks:'Bedankt voor het verzenden!',refLabel:'Referentie',chooseShare:'Kies een van deze methoden om in je werkgroep te delen:',newEntry:'+ Nieuwe registratie',
    whatsapp:'Verstuur via WhatsApp',pdf:'PDF downloaden',excel:'Excel downloaden',report:'Werkrapport Chauffeur',
    chooseLang:'Kies je taal',langNote:'De app opent automatisch in de taal van je telefoon.',accountBtn:'Mijn Uren',checkHours:'Mijn Uren',loginPrompt:'Log in om je verzonden uren te zien.',
@@ -500,13 +457,13 @@ const T = {
    startKm:'Początkowy KM',startKmPh:'Wpisz początkowy km',endKm:'Końcowy KM',endKmPh:'Wpisz końcowy km',remarks:'Uwagi',remarksPh:'Wpisz uwagi',
    breakTime:'Czas przerwy',hours:'godz.',minutes:'min',startTime:'Czas rozpoczęcia',endTime:'Czas zakończenia',
    hDriver:'Twoje imię i nazwisko.',hClient:'Wybierz, dla kogo jechałeś.',
-   hTrucks:'Zaznacz pojazd, którym jechałeś. Nie ma go? Dotknij „Inny", aby dodać.',
-   hTrailers:'Zaznacz naczepę, którą ciągnąłeś. Nie ma jej? Dotknij „Inny", aby dodać.',
-   optAdd:'Wybierz, aby dodać…',optOther:'Inny — wpisz numer rejestracyjny',platePh:'np. ABC-1234',plateInstr:'Wpisz użyty numer rejestracyjny:',addBtn:'Dodaj',
+   hTrucks:'Wpisz każdy pojazd, którym jechałeś. Jeśli było ich kilka, wpisz wszystkie, oddzielając przecinkiem.',
+   hTrailers:'Wpisz każdą naczepę, którą ciągnąłeś. Jeśli było ich kilka, wpisz wszystkie, oddzielając przecinkiem.',
+   optAdd:'Wybierz, aby dodać…',optOther:'Inny, wpisz numer rejestracyjny',platePh:'np. ABC-1234',plateInstr:'Wpisz użyty numer rejestracyjny:',addBtn:'Dodaj',
    hStartKm:'Stan licznika, gdy ruszałeś.',hEndKm:'Stan licznika, gdy parkowałeś.',hBreak:'Ile łącznie trwały przerwy.',
-   hStartT:'O której ruszyłeś.',hEndT:'O której skończyłeś.',hRemarks:'Coś do zanotowania? Opcjonalnie — opóźnienie, czas oczekiwania itp.',hCode:'Poproś menedżera o ten kod.',
+   hStartT:'O której ruszyłeś.',hEndT:'O której skończyłeś.',hRemarks:'Coś do zanotowania? Opcjonalnie. Na przykład opóźnienie lub czas oczekiwania.',hCode:'Poproś menedżera o ten kod.',
    totalKm:'Suma KM',totalTime:'Łączny czas',submit:'Wyślij',reqNote:'Pola oznaczone * są wymagane.',
-   errFill:'Uzupełnij podświetlone pola, a następnie wyślij.',errTruck:'Dodaj co najmniej jeden pojazd.',errTrailer:'Dodaj co najmniej jedną naczepę.',errKm:'Końcowy KM musi być większy niż początkowy. Sprawdź obie liczby i popraw podświetlone pole.',errTime:'Czas zakończenia musi być po rozpoczęciu. Popraw podświetlony czas.',
+   errFill:'Uzupełnij podświetlone pola, a następnie wyślij.',errTruck:'Wpisz pojazd, którym jechałeś.',errTrailer:'Wpisz naczepę, którą ciągnąłeś.',errKm:'Końcowy KM musi być większy niż początkowy. Sprawdź obie liczby i popraw podświetlone pole.',errTime:'Czas zakończenia musi być po rozpoczęciu. Popraw podświetlony czas.',
    thanks:'Dziękujemy za przesłanie!',refLabel:'Numer',chooseShare:'Wybierz jedną z metod, aby udostępnić w grupie roboczej:',newEntry:'+ Nowy wpis',
    whatsapp:'Wyślij przez WhatsApp',pdf:'Pobierz PDF',excel:'Pobierz Excel',report:'Raport Pracy Kierowcy',
    chooseLang:'Wybierz język',langNote:'Aplikacja otwiera się automatycznie w języku telefonu.',accountBtn:'Moje Godziny',checkHours:'Moje Godziny',loginPrompt:'Zaloguj się, aby zobaczyć przesłane godziny.',
@@ -519,13 +476,13 @@ const T = {
    startKm:'KM Inicial',startKmPh:'Introduza o km inicial',endKm:'KM Final',endKmPh:'Introduza o km final',remarks:'Observações',remarksPh:'Introduza observações',
    breakTime:'Tempo de Pausa',hours:'horas',minutes:'minutos',startTime:'Hora de Início',endTime:'Hora de Fim',
    hDriver:'O seu nome completo.',hClient:'Escolha para quem conduziu.',
-   hTrucks:'Marque o camião que conduziu. Não está? Toque em "Outro" para adicionar.',
-   hTrailers:'Marque o reboque que puxou. Não está? Toque em "Outro" para adicionar.',
-   optAdd:'Selecione para adicionar…',optOther:'Outro — introduzir matrícula',platePh:'ex. ABC-1234',plateInstr:'Introduza a matrícula utilizada:',addBtn:'Adicionar',
+   hTrucks:'Escreva cada camião que conduziu. Se foi mais de um, escreva todos, separados por vírgula.',
+   hTrailers:'Escreva cada reboque que puxou. Se foi mais de um, escreva todos, separados por vírgula.',
+   optAdd:'Selecione para adicionar…',optOther:'Outro, introduzir matrícula',platePh:'ex. ABC-1234',plateInstr:'Introduza a matrícula utilizada:',addBtn:'Adicionar',
    hStartKm:'Os km no painel quando arrancou.',hEndKm:'Os km no painel quando estacionou.',hBreak:'Quanto tempo parou para pausas, no total.',
-   hStartT:'A que horas arrancou.',hEndT:'A que horas terminou.',hRemarks:'Algo a registar? Opcional — um atraso, tempo de espera, etc.',hCode:'Peça este código ao seu gestor.',
+   hStartT:'A que horas arrancou.',hEndT:'A que horas terminou.',hRemarks:'Algo a registar? É opcional. Por exemplo um atraso ou tempo de espera.',hCode:'Peça este código ao seu gestor.',
    totalKm:'Total KM',totalTime:'Tempo Total',submit:'Submeter',reqNote:'Campos marcados com * são obrigatórios.',
-   errFill:'Preencha os campos destacados e depois submeta.',errTruck:'Adicione pelo menos um camião.',errTrailer:'Adicione pelo menos um reboque.',errKm:'O KM Final deve ser maior que o KM Inicial. Verifique os dois números e corrija o campo destacado.',errTime:'A Hora de Fim deve ser após a de Início. Corrija a hora destacada.',
+   errFill:'Preencha os campos destacados e depois submeta.',errTruck:'Escreva o camião que conduziu.',errTrailer:'Escreva o reboque que puxou.',errKm:'O KM Final deve ser maior que o KM Inicial. Verifique os dois números e corrija o campo destacado.',errTime:'A Hora de Fim deve ser após a de Início. Corrija a hora destacada.',
    thanks:'Obrigado por submeter!',refLabel:'Referência',chooseShare:'Escolha um destes métodos para partilhar no grupo de trabalho:',newEntry:'+ Novo registo',
    whatsapp:'Enviar por WhatsApp',pdf:'Descarregar PDF',excel:'Descarregar Excel',report:'Relatório de Trabalho',
    chooseLang:'Escolha o seu idioma',langNote:'A aplicação abre automaticamente no idioma do seu telemóvel.',accountBtn:'As Minhas Horas',checkHours:'As Minhas Horas',loginPrompt:'Inicie sessão para ver as horas submetidas.',
@@ -538,13 +495,13 @@ const T = {
    startKm:'KM Start',startKmPh:'Introduceți km de start',endKm:'KM Final',endKmPh:'Introduceți km final',remarks:'Observații',remarksPh:'Introduceți observații',
    breakTime:'Timp de Pauză',hours:'ore',minutes:'minute',startTime:'Ora de Început',endTime:'Ora de Sfârșit',
    hDriver:'Numele dvs. complet.',hClient:'Alege pentru cine ai condus.',
-   hTrucks:'Bifează camionul pe care l-ai condus. Nu e în listă? Apasă "Altul" ca să-l adaugi.',
-   hTrailers:'Bifează remorca pe care ai tras-o. Nu e în listă? Apasă "Altul" ca să o adaugi.',
-   optAdd:'Selectați pentru a adăuga…',optOther:'Altul — introduceți numărul',platePh:'ex. ABC-1234',plateInstr:'Introduceți numărul de înmatriculare folosit:',addBtn:'Adaugă',
+   hTrucks:'Scrie fiecare camion pe care l-ai condus. Dacă au fost mai multe, scrie-le pe toate, despărțite prin virgulă.',
+   hTrailers:'Scrie fiecare remorcă pe care ai tras-o. Dacă au fost mai multe, scrie-le pe toate, despărțite prin virgulă.',
+   optAdd:'Selectați pentru a adăuga…',optOther:'Altul, introduceți numărul',platePh:'ex. ABC-1234',plateInstr:'Introduceți numărul de înmatriculare folosit:',addBtn:'Adaugă',
    hStartKm:'Câți km arăta bordul când ai plecat.',hEndKm:'Câți km arăta bordul când ai parcat.',hBreak:'Cât ai stat în pauze, în total.',
-   hStartT:'La ce oră ai plecat.',hEndT:'La ce oră ai terminat.',hRemarks:'Ceva de menționat? Opțional — o întârziere, timp de așteptare etc.',hCode:'Cereți acest cod managerului.',
+   hStartT:'La ce oră ai plecat.',hEndT:'La ce oră ai terminat.',hRemarks:'Ceva de menționat? Este opțional. De exemplu o întârziere sau timp de așteptare.',hCode:'Cereți acest cod managerului.',
    totalKm:'Total KM',totalTime:'Timp Total',submit:'Trimite',reqNote:'Câmpurile marcate cu * sunt obligatorii.',
-   errFill:'Completați câmpurile evidențiate, apoi trimiteți.',errTruck:'Adăugați cel puțin un camion.',errTrailer:'Adăugați cel puțin o remorcă.',errKm:'KM Final trebuie să fie mai mare decât KM Start. Verificați ambele numere și corectați câmpul evidențiat.',errTime:'Ora de Sfârșit trebuie să fie după Început. Corectați ora evidențiată.',
+   errFill:'Completați câmpurile evidențiate, apoi trimiteți.',errTruck:'Scrie camionul pe care l-ai condus.',errTrailer:'Scrie remorca pe care ai tras-o.',errKm:'KM Final trebuie să fie mai mare decât KM Start. Verificați ambele numere și corectați câmpul evidențiat.',errTime:'Ora de Sfârșit trebuie să fie după Început. Corectați ora evidențiată.',
    thanks:'Mulțumim pentru trimitere!',refLabel:'Referință',chooseShare:'Alegeți una dintre aceste metode pentru a partaja în grupul de lucru:',newEntry:'+ Fișă nouă',
    whatsapp:'Trimite prin WhatsApp',pdf:'Descarcă PDF',excel:'Descarcă Excel',report:'Raport de Lucru Șofer',
    chooseLang:'Alegeți limba',langNote:'Aplicația se deschide automat în limba telefonului dvs.',accountBtn:'Orele Mele',checkHours:'Orele Mele',loginPrompt:'Conectați-vă pentru a vedea orele trimise.',
@@ -571,26 +528,26 @@ const sel={truck:[],trailer:[],client:[]};
 let pendingDriver=null;
 const DRIVER_CONTACT='the office';
 (function(){var ov={
- en:{hTrucks:'Tick the truck you drove. Not there? Tap "Other" to add it.',hTrailers:'Tick the trailer you pulled. Not there? Tap "Other" to add it.',optOther:'Other — not in the list',plateInstr:'Type the plate (separate several with a comma):',platePh:'e.g. AB-123-C',searchPh:'Search plate…',selNone:'None selected yet'},
- nl:{hTrucks:'Vink elke vrachtwagen aan die je hebt gereden. Gebruik "Overig" voor een onbekende.',hTrailers:'Vink elke oplegger aan die je hebt gebruikt. Gebruik "Overig" voor een onbekende.',optOther:'Overig — niet in de lijst',plateInstr:'Typ het kenteken (meerdere met komma scheiden):',platePh:'bijv. AB-123-C',searchPh:'Kenteken zoeken…',selNone:'Nog niets geselecteerd'},
- pl:{hTrucks:'Zaznacz każdy pojazd, którym jechałeś. Użyj „Inny” dla spoza listy.',hTrailers:'Zaznacz każdą naczepę, której użyłeś. Użyj „Inny” dla spoza listy.',optOther:'Inny — spoza listy',plateInstr:'Wpisz numer (kilka oddziel przecinkiem):',platePh:'np. AB-123-C',searchPh:'Szukaj numeru…',selNone:'Nic nie wybrano'},
- pt:{hTrucks:'Marque cada camião que conduziu. Use "Outro" para um fora da lista.',hTrailers:'Marque cada reboque que utilizou. Use "Outro" para um fora da lista.',optOther:'Outro — fora da lista',plateInstr:'Escreva a matrícula (separe várias com vírgula):',platePh:'ex. AB-123-C',searchPh:'Procurar matrícula…',selNone:'Nada selecionado'},
- ro:{hTrucks:'Bifați fiecare camion condus. Folosiți „Altul” pentru unul din afara listei.',hTrailers:'Bifați fiecare remorcă folosită. Folosiți „Altul” pentru una din afara listei.',optOther:'Altul — nu este în listă',plateInstr:'Scrieți numărul (separați mai multe cu virgulă):',platePh:'ex. AB-123-C',searchPh:'Căutați numărul…',selNone:'Nimic selectat'}
+ en:{hTrucks:'Write every truck you drove. If it was more than one, write them all with a comma between.',hTrailers:'Write every trailer you pulled. If it was more than one, write them all with a comma between.',optOther:'Other, not in the list',plateInstr:'Type the plate (separate several with a comma):',platePh:'e.g. AB-123-C',searchPh:'Search plate…',selNone:'None selected yet'},
+ nl:{hTrucks:'Schrijf elke vrachtwagen die je reed. Waren het er meer? Schrijf ze allemaal, met een komma ertussen.',hTrailers:'Schrijf elke oplegger die je trok. Waren het er meer? Schrijf ze allemaal, met een komma ertussen.',optOther:'Overig, niet in de lijst',plateInstr:'Typ het kenteken (meerdere met komma scheiden):',platePh:'bijv. AB-123-C',searchPh:'Kenteken zoeken…',selNone:'Nog niets geselecteerd'},
+ pl:{hTrucks:'Wpisz każdy pojazd, którym jechałeś. Jeśli było ich kilka, wpisz wszystkie, oddzielając przecinkiem.',hTrailers:'Wpisz każdą naczepę, którą ciągnąłeś. Jeśli było ich kilka, wpisz wszystkie, oddzielając przecinkiem.',optOther:'Inny, spoza listy',plateInstr:'Wpisz numer (kilka oddziel przecinkiem):',platePh:'np. AB-123-C',searchPh:'Szukaj numeru…',selNone:'Nic nie wybrano'},
+ pt:{hTrucks:'Escreva cada camião que conduziu. Se foi mais de um, escreva todos, separados por vírgula.',hTrailers:'Escreva cada reboque que puxou. Se foi mais de um, escreva todos, separados por vírgula.',optOther:'Outro, fora da lista',plateInstr:'Escreva a matrícula (separe várias com vírgula):',platePh:'ex. AB-123-C',searchPh:'Procurar matrícula…',selNone:'Nada selecionado'},
+ ro:{hTrucks:'Scrie fiecare camion pe care l-ai condus. Dacă au fost mai multe, scrie-le pe toate, despărțite prin virgulă.',hTrailers:'Scrie fiecare remorcă pe care ai tras-o. Dacă au fost mai multe, scrie-le pe toate, despărțite prin virgulă.',optOther:'Altul, nu este în listă',plateInstr:'Scrieți numărul (separați mai multe cu virgulă):',platePh:'ex. AB-123-C',searchPh:'Căutați numărul…',selNone:'Nimic selectat'}
 };for(var L in ov){if(T[L])for(var k in ov[L])T[L][k]=ov[L][k];}})();
 (function(){var ov={
- en:{ddClient:'Select client…',searchClient:'Search client…',instrClient:'Type the client name:',phClient:'e.g. ACME Logistics',errClient:'Please choose a client.',hClient:'Pick who you drove for.'},
- nl:{ddClient:'Kies klant…',searchClient:'Klant zoeken…',instrClient:'Typ de klantnaam:',phClient:'bijv. ACME Logistics',errClient:'Kies een klant.',hClient:'Kies de klant voor wie je hebt gereden.'},
- pl:{ddClient:'Wybierz klienta…',searchClient:'Szukaj klienta…',instrClient:'Wpisz nazwę klienta:',phClient:'np. ACME Logistics',errClient:'Wybierz klienta.',hClient:'Wybierz klienta, dla którego jechałeś.'},
- pt:{ddClient:'Selecionar cliente…',searchClient:'Procurar cliente…',instrClient:'Escreva o nome do cliente:',phClient:'ex. ACME Logistics',errClient:'Escolha um cliente.',hClient:'Escolha o cliente para quem conduziu.'},
- ro:{ddClient:'Selectați clientul…',searchClient:'Căutați clientul…',instrClient:'Scrieți numele clientului:',phClient:'ex. ACME Logistics',errClient:'Alegeți un client.',hClient:'Alegeți clientul pentru care ați condus.'}
+ en:{ddClient:'Select client…',searchClient:'Search client…',instrClient:'Type the client name:',phClient:'e.g. ACME Logistics',errClient:'Please write who you drove for.',hClient:'Write who you drove for. If you drove for more than one client, send each client as a separate report.'},
+ nl:{ddClient:'Kies klant…',searchClient:'Klant zoeken…',instrClient:'Typ de klantnaam:',phClient:'bijv. ACME Logistics',errClient:'Schrijf voor wie je hebt gereden.',hClient:'Schrijf voor wie je hebt gereden. Heb je voor meer dan één klant gereden? Stuur voor elke klant een apart rapport.'},
+ pl:{ddClient:'Wybierz klienta…',searchClient:'Szukaj klienta…',instrClient:'Wpisz nazwę klienta:',phClient:'np. ACME Logistics',errClient:'Wpisz, dla kogo jechałeś.',hClient:'Wpisz, dla kogo jechałeś. Jeśli dla więcej niż jednego klienta, wyślij osobny raport dla każdego.'},
+ pt:{ddClient:'Selecionar cliente…',searchClient:'Procurar cliente…',instrClient:'Escreva o nome do cliente:',phClient:'ex. ACME Logistics',errClient:'Escreva para quem conduziu.',hClient:'Escreva para quem conduziu. Se conduziu para mais de um cliente, envie um relatório separado para cada um.'},
+ ro:{ddClient:'Selectați clientul…',searchClient:'Căutați clientul…',instrClient:'Scrieți numele clientului:',phClient:'ex. ACME Logistics',errClient:'Scrie pentru cine ai condus.',hClient:'Scrie pentru cine ai condus. Dacă ai condus pentru mai mulți clienți, trimite un raport separat pentru fiecare.'}
 };for(var L in ov){if(T[L])for(var k in ov[L])T[L][k]=ov[L][k];}})();
 
 (function(){var ov={
- en:{driverCode:'Driver code',hDriverCode:'Type your personal code. Your name pops up so you know it worked.',driverCodePh:'e.g. 4821',confirmTitle:'Is this you?',confirmSub:'Check your name below before we save the entry.',yes:'Yes, that’s me',no:'No — check code',errDriverCode:'That code isn’t recognised. Please check it, or contact {c}.'},
- nl:{driverCode:'Chauffeurscode',hDriverCode:'Typ je persoonlijke code. Je naam verschijnt, zodat je weet dat het klopt.',driverCodePh:'bijv. 4821',confirmTitle:'Ben jij dit?',confirmSub:'Controleer je naam voordat we de invoer opslaan.',yes:'Ja, dat ben ik',no:'Nee — code checken',errDriverCode:'Code niet herkend. Controleer hem of neem contact op met {c}.'},
- pl:{driverCode:'Kod kierowcy',hDriverCode:'Wpisz swój kod. Pojawi się Twoje imię, żebyś wiedział, że się zgadza.',driverCodePh:'np. 4821',confirmTitle:'Czy to Ty?',confirmSub:'Sprawdź swoje imię, zanim zapiszemy wpis.',yes:'Tak, to ja',no:'Nie — sprawdź kod',errDriverCode:'Nie rozpoznano kodu. Sprawdź go lub skontaktuj się z {c}.'},
- pt:{driverCode:'Código do motorista',hDriverCode:'Escreva o seu código. O seu nome aparece para confirmar que está certo.',driverCodePh:'ex. 4821',confirmTitle:'É você?',confirmSub:'Confirme o seu nome antes de guardarmos o registo.',yes:'Sim, sou eu',no:'Não — verificar código',errDriverCode:'Código não reconhecido. Verifique-o ou contacte {c}.'},
- ro:{driverCode:'Cod șofer',hDriverCode:'Scrie codul tău. Numele tău apare ca să știi că e corect.',driverCodePh:'ex. 4821',confirmTitle:'Tu ești?',confirmSub:'Verificați numele înainte de a salva.',yes:'Da, eu sunt',no:'Nu — verifică codul',errDriverCode:'Cod nerecunoscut. Verificați-l sau contactați {c}.'}
+ en:{driverCode:'Driver code',hDriverCode:'Type your personal code. Your name pops up so you know it worked.',driverCodePh:'e.g. 4821',confirmTitle:'Is this you?',confirmSub:'Check the name below is yours.',confirmWarn:'Make sure everything you filled in is correct before you send. This report goes to the office and counts for your hours, so wrong details cause problems later.',yes:'Yes, that’s me',no:'No, check code',errDriverCode:'That code isn’t recognised. Please check it, or contact {c}.'},
+ nl:{driverCode:'Chauffeurscode',hDriverCode:'Typ je persoonlijke code. Je naam verschijnt, zodat je weet dat het klopt.',driverCodePh:'bijv. 4821',confirmTitle:'Ben jij dit?',confirmSub:'Controleer of de naam hieronder van jou is.',confirmWarn:'Zorg dat alles wat je hebt ingevuld klopt voordat je verzendt. Dit rapport gaat naar kantoor en telt mee voor je uren, dus verkeerde gegevens geven later problemen.',yes:'Ja, dat ben ik',no:'Nee, code checken',errDriverCode:'Code niet herkend. Controleer hem of neem contact op met {c}.'},
+ pl:{driverCode:'Kod kierowcy',hDriverCode:'Wpisz swój kod. Pojawi się Twoje imię, żebyś wiedział, że się zgadza.',driverCodePh:'np. 4821',confirmTitle:'Czy to Ty?',confirmSub:'Sprawdź, czy poniższe imię to Ty.',confirmWarn:'Upewnij się, że wszystko, co wpisałeś, jest poprawne, zanim wyślesz. Ten raport trafia do biura i liczy się do Twoich godzin, więc błędne dane powodują później problemy.',yes:'Tak, to ja',no:'Nie, sprawdź kod',errDriverCode:'Nie rozpoznano kodu. Sprawdź go lub skontaktuj się z {c}.'},
+ pt:{driverCode:'Código do motorista',hDriverCode:'Escreva o seu código. O seu nome aparece para confirmar que está certo.',driverCodePh:'ex. 4821',confirmTitle:'É você?',confirmSub:'Confirme que o nome abaixo é o seu.',confirmWarn:'Confirme que tudo o que preencheu está correto antes de enviar. Este relatório vai para o escritório e conta para as suas horas, por isso dados errados causam problemas mais tarde.',yes:'Sim, sou eu',no:'Não, verificar código',errDriverCode:'Código não reconhecido. Verifique-o ou contacte {c}.'},
+ ro:{driverCode:'Cod șofer',hDriverCode:'Scrie codul tău. Numele tău apare ca să știi că e corect.',driverCodePh:'ex. 4821',confirmTitle:'Tu ești?',confirmSub:'Verifică dacă numele de mai jos este al tău.',confirmWarn:'Asigură-te că tot ce ai completat este corect înainte să trimiți. Acest raport ajunge la birou și contează pentru orele tale, deci datele greșite cauzează probleme mai târziu.',yes:'Da, eu sunt',no:'Nu, verifică codul',errDriverCode:'Cod nerecunoscut. Verificați-l sau contactați {c}.'}
 };for(var L in ov){if(T[L])for(var k in ov[L])T[L][k]=ov[L][k];}})();
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
@@ -631,7 +588,7 @@ async function openHours(){
     document.getElementById('payMonth').innerHTML=''; document.getElementById('payWeek').innerHTML=''; return; }
   if(r && r.rows){ payGroups=r.groups||[]; payHeaders=r.headers||[]; payRows=r.rows||[]; }
   if(!payHeaders.length && !(r && r.error)){
-    document.getElementById('payTable').innerHTML='<div class="pay-empty">'+(d.loadFail||'Could not load your hours — please tap My Hours again.')+'</div>';
+    document.getElementById('payTable').innerHTML='<div class="pay-empty">'+(d.loadFail||'Could not load your hours. Please tap My Hours again.')+'</div>';
     return;
   }
   indexPay(); buildPayFilters(); renderPayable();
@@ -704,7 +661,7 @@ function filterList(kind){
     row.style.display = pl.indexOf(q)>=0 ? '' : 'none';
   });
 }
-function refreshPickers(){ ['truck','trailer','client'].forEach(function(k){ buildChecklist(k); renderSel(k); updateLabel(k); }); }
+function refreshPickers(){}
 function updateLabel(kind){
   const d=T[lang]; const list=sel[kind];
   const lbl=document.getElementById(kind+'DDlabel'); const dd=document.getElementById(kind+'DD'); if(!lbl||!dd) return;
@@ -748,9 +705,9 @@ async function submitEntry(){
   const d=T[lang]; clearErrs(); var firstBad=null;
   function mark(id,msg){ var f=setErr(id,msg); if(f&&!firstBad) firstBad=f; }
   REQUIRED.forEach(function(id){ if(!val(id).trim()) mark('f-'+id, d.fillThis); });
-  if(!sel.client.length){ mark('f-client', d.errClient); document.getElementById('clientDD').classList.add('open'); }
-  if(!sel.truck.length){ mark('f-truck', d.errTruck); document.getElementById('truckDD').classList.add('open'); }
-  if(!sel.trailer.length){ mark('f-trailer', d.errTrailer); document.getElementById('trailerDD').classList.add('open'); }
+  if(!val('client').trim()){ mark('f-client', d.errClient); }
+  if(!val('truck').trim()){ mark('f-truck', d.errTruck); }
+  if(!val('trailer').trim()){ mark('f-trailer', d.errTrailer); }
   if(firstBad){ firstBad.scrollIntoView({behavior:'smooth',block:'center'}); return; }
   if(parseFloat(val('endKm'))<=parseFloat(val('startKm'))) mark('f-endKm', d.errKm);
   if(new Date(val('endTime'))<=new Date(val('startTime'))) mark('f-endTime', d.errTime);
@@ -770,7 +727,7 @@ function finalizeEntry(){
   const brk=(parseInt(val('breakH'))||0)*60+(parseInt(val('breakM'))||0);
   const mins=Math.max(0,Math.round((new Date(val('endTime'))-new Date(val('startTime')))/60000-brk));
   const ref=val('tripNo').trim();
-  const entry={ ref, driver:pendingDriver.name, driverId:pendingDriver.id, client:sel.client.join(', '), truck:sel.truck.join(', '), trailer:sel.trailer.join(', '), firstStop:val('firstStop'), lastStop:val('lastStop'),
+  const entry={ ref, driver:pendingDriver.name, driverId:pendingDriver.id, client:val('client').trim(), truck:val('truck').trim(), trailer:val('trailer').trim(), firstStop:val('firstStop'), lastStop:val('lastStop'),
     startKm:val('startKm'), endKm:val('endKm'), totalKm:km, startTime:val('startTime'), endTime:val('endTime'),
     breakMins:brk, totalMins:mins, remarks:val('remarks'), submittedAt:new Date().toISOString().slice(0,16) };
   entries.push(entry); lastEntry=entry;
@@ -784,15 +741,8 @@ async function lookupDriver(code){
   catch(e){ return {found:false}; }
 }
 function resetForm(){
-  ['driver','tripNo','firstStop','lastStop','startKm','endKm','remarks','startTime','endTime'].forEach(id=>document.getElementById(id).value='');
+  ['driver','client','truck','trailer','tripNo','firstStop','lastStop','startKm','endKm','remarks','startTime','endTime'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('breakH').value=0; document.getElementById('breakM').value=0;
-  ['truck','trailer','client'].forEach(function(k){
-    picked[k]={set:new Set(),other:[]};
-    var oi=document.getElementById(k+'OtherInput'); if(oi) oi.value='';
-    var ob=document.getElementById(k+'Other'); if(ob) ob.style.display='none';
-    var s=document.getElementById(k+'Search'); if(s) s.value='';
-    buildChecklist(k); recompute(k); filterList(k);
-  });
   ['driver','client','tripNo','firstStop','lastStop','startKm','endKm','startTime','endTime','truck','trailer'].forEach(id=>{ const el=document.getElementById('f-'+id); if(el) el.classList.remove('bad'); });
   calc();
 }
@@ -977,7 +927,7 @@ function exportPay(kind){
   var month=document.getElementById('payMonth').value; var week=document.getElementById('payWeek').value;
   var from=document.getElementById('payFrom').value, to=document.getElementById('payTo').value;
   var scope=(from||to)?((from||'\u2026')+' \u2192 '+(to||'\u2026')):(month+(week?(' \u00b7 '+(d.week||'Week')+' '+week):''));
-  var title=currentUser.name+' \u2014 '+scope;
+  var title=currentUser.name+'  \u00b7  '+scope;
   var fnbase='payable-'+currentUser.name.replace(/\s+/g,'_')+'-'+scope.replace(/[^\w-]+/g,'_');
   var colKey=payColKeys();
   if(kind==='excel'){ exportPayExcel(title,fnbase,rows,colKey); return; }
@@ -1078,11 +1028,11 @@ function exportPayExcel(title,fnbase,rows,colKey){
  ro:{hoursPrompt:'Introduceți codul de șofer pentru a vedea orele.',viewHours:'Vezi orele mele',hCodeHours:'Același cod pe care îl folosiți la trimitere.'}
 };for(var L in ov){if(T[L])for(var k in ov[L])T[L][k]=ov[L][k];}})();
 (function(){var ov={
- en:{filterMonth:'Month',filterWeek:'Week',filterFrom:'From',filterTo:'To',clearRange:'Clear dates',tabMonth:'By month',tabCustom:'Custom',searchBtn:'Search',pickRange:'Pick a date range and tap Search.',loadFail:'Could not load your hours \u2014 please tap My Hours again.',allWeeks:'All weeks',week:'Week',loading:'Loading\u2026',noPayable:'No hours found for this selection.',noTab:'No payable sheet found for your code. Please contact the office.'},
- nl:{filterMonth:'Maand',filterWeek:'Week',filterFrom:'Vanaf',filterTo:'Tot',clearRange:'Wis datums',tabMonth:'Per maand',tabCustom:'Aangepast',searchBtn:'Zoeken',pickRange:'Kies een periode en tik op Zoeken.',loadFail:'Kon je uren niet laden \u2014 tik opnieuw op Mijn uren.',allWeeks:'Alle weken',week:'Week',loading:'Laden\u2026',noPayable:'Geen uren gevonden voor deze selectie.',noTab:'Geen urenblad gevonden voor jouw code. Neem contact op met kantoor.'},
- pl:{filterMonth:'Miesi\u0105c',filterWeek:'Tydzie\u0144',filterFrom:'Od',filterTo:'Do',clearRange:'Wyczy\u015b\u0107 daty',tabMonth:'Wed\u0142ug miesi\u0105ca',tabCustom:'W\u0142asny',searchBtn:'Szukaj',pickRange:'Wybierz zakres dat i naci\u015bnij Szukaj.',loadFail:'Nie uda\u0142o si\u0119 wczyta\u0107 godzin \u2014 dotknij ponownie Moje godziny.',allWeeks:'Wszystkie tygodnie',week:'Tydz.',loading:'\u0141adowanie\u2026',noPayable:'Brak godzin dla tego wyboru.',noTab:'Nie znaleziono arkusza dla Twojego kodu. Skontaktuj si\u0119 z biurem.'},
- pt:{filterMonth:'M\u00eas',filterWeek:'Semana',filterFrom:'De',filterTo:'At\u00e9',clearRange:'Limpar datas',tabMonth:'Por m\u00eas',tabCustom:'Personalizado',searchBtn:'Pesquisar',pickRange:'Escolha um intervalo de datas e toque em Pesquisar.',loadFail:'N\u00e3o foi poss\u00edvel carregar as horas \u2014 toque novamente em Minhas horas.',allWeeks:'Todas as semanas',week:'Sem.',loading:'A carregar\u2026',noPayable:'Sem horas para esta sele\u00e7\u00e3o.',noTab:'Folha n\u00e3o encontrada para o seu c\u00f3digo. Contacte o escrit\u00f3rio.'},
- ro:{filterMonth:'Luna',filterWeek:'S\u0103pt\u0103m\u00e2na',filterFrom:'De la',filterTo:'P\u00e2n\u0103 la',clearRange:'\u0218terge datele',tabMonth:'Pe lun\u0103',tabCustom:'Personalizat',searchBtn:'Caut\u0103',pickRange:'Alege un interval de date \u0219i apas\u0103 Caut\u0103.',loadFail:'Nu s-au putut \u00eenc\u0103rca orele \u2014 atinge din nou Orele mele.',allWeeks:'Toate s\u0103pt\u0103m\u00e2nile',week:'S\u0103pt.',loading:'Se \u00eencarc\u0103\u2026',noPayable:'Nicio or\u0103 pentru aceast\u0103 selec\u021bie.',noTab:'Nu s-a g\u0103sit nicio fi\u0219\u0103 pentru codul dvs. Contacta\u021bi biroul.'}
+ en:{filterMonth:'Month',filterWeek:'Week',filterFrom:'From',filterTo:'To',clearRange:'Clear dates',tabMonth:'By month',tabCustom:'Custom',searchBtn:'Search',pickRange:'Pick a date range and tap Search.',loadFail:'Could not load your hours. Please tap My Hours again.',allWeeks:'All weeks',week:'Week',loading:'Loading\u2026',noPayable:'No hours found for this selection.',noTab:'No payable sheet found for your code. Please contact the office.'},
+ nl:{filterMonth:'Maand',filterWeek:'Week',filterFrom:'Vanaf',filterTo:'Tot',clearRange:'Wis datums',tabMonth:'Per maand',tabCustom:'Aangepast',searchBtn:'Zoeken',pickRange:'Kies een periode en tik op Zoeken.',loadFail:'Kon je uren niet laden. Tik opnieuw op Mijn uren.',allWeeks:'Alle weken',week:'Week',loading:'Laden\u2026',noPayable:'Geen uren gevonden voor deze selectie.',noTab:'Geen urenblad gevonden voor jouw code. Neem contact op met kantoor.'},
+ pl:{filterMonth:'Miesi\u0105c',filterWeek:'Tydzie\u0144',filterFrom:'Od',filterTo:'Do',clearRange:'Wyczy\u015b\u0107 daty',tabMonth:'Wed\u0142ug miesi\u0105ca',tabCustom:'W\u0142asny',searchBtn:'Szukaj',pickRange:'Wybierz zakres dat i naci\u015bnij Szukaj.',loadFail:'Nie uda\u0142o si\u0119 wczyta\u0107 godzin. Dotknij ponownie Moje godziny.',allWeeks:'Wszystkie tygodnie',week:'Tydz.',loading:'\u0141adowanie\u2026',noPayable:'Brak godzin dla tego wyboru.',noTab:'Nie znaleziono arkusza dla Twojego kodu. Skontaktuj si\u0119 z biurem.'},
+ pt:{filterMonth:'M\u00eas',filterWeek:'Semana',filterFrom:'De',filterTo:'At\u00e9',clearRange:'Limpar datas',tabMonth:'Por m\u00eas',tabCustom:'Personalizado',searchBtn:'Pesquisar',pickRange:'Escolha um intervalo de datas e toque em Pesquisar.',loadFail:'N\u00e3o foi poss\u00edvel carregar as horas. Toque novamente em Minhas horas.',allWeeks:'Todas as semanas',week:'Sem.',loading:'A carregar\u2026',noPayable:'Sem horas para esta sele\u00e7\u00e3o.',noTab:'Folha n\u00e3o encontrada para o seu c\u00f3digo. Contacte o escrit\u00f3rio.'},
+ ro:{filterMonth:'Luna',filterWeek:'S\u0103pt\u0103m\u00e2na',filterFrom:'De la',filterTo:'P\u00e2n\u0103 la',clearRange:'\u0218terge datele',tabMonth:'Pe lun\u0103',tabCustom:'Personalizat',searchBtn:'Caut\u0103',pickRange:'Alege un interval de date \u0219i apas\u0103 Caut\u0103.',loadFail:'Nu s-au putut \u00eenc\u0103rca orele. Atinge din nou Orele mele.',allWeeks:'Toate s\u0103pt\u0103m\u00e2nile',week:'S\u0103pt.',loading:'Se \u00eencarc\u0103\u2026',noPayable:'Nicio or\u0103 pentru aceast\u0103 selec\u021bie.',noTab:'Nu s-a g\u0103sit nicio fi\u0219\u0103 pentru codul dvs. Contacta\u021bi biroul.'}
 };for(var L in ov){if(T[L])for(var k in ov[L])T[L][k]=ov[L][k];}})();
 (function(){var ov={
  en:{tripNo:'Trip number',hTripNo:'Your trip number. Got a few? Separate them with commas.',tripNoPh:'e.g. 1024 or 1024, 1025'},
@@ -1097,7 +1047,7 @@ function detectLang(){
   return 'en';
 }
 const startLang=detectLang();
-buildLangList(); buildChecklist('truck'); buildChecklist('trailer'); buildChecklist('client'); setLang(startLang); recompute('truck'); recompute('trailer'); recompute('client'); calc();
+buildLangList(); setLang(startLang); calc();
 document.querySelectorAll('.field').forEach(function(f){ if(!f.querySelector('.field-err')){ var e=document.createElement('div'); e.className='field-err'; f.appendChild(e);} });
 document.addEventListener('input',function(e){ var t=e.target; var f=(t&&t.closest)?t.closest('.field'):null; if(f){ f.classList.remove('bad'); var er=f.querySelector('.field-err'); if(er) er.textContent=''; } });
 </script>
